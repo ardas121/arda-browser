@@ -47,7 +47,7 @@ function createTab(url, opts = {}) {
   wv.src = url || newtabUrl();
   views.appendChild(wv);
 
-  const tab = { id, wv, title: "Yeni sekme", url: url || "", priv: !!opts.priv, loading: false, fav: "" };
+  const tab = { id, wv, title: "New Tab", url: url || "", isNewTab: !url, priv: !!opts.priv, loading: false, fav: "" };
   tabs.push(tab);
 
   wv.addEventListener("page-title-updated", (e) => { tab.title = e.title; renderTabs(); });
@@ -67,6 +67,9 @@ function createTab(url, opts = {}) {
 }
 
 function onNavigate(tab, url) {
+  tab.isNewTab = !url || url.startsWith("file://") || url === "about:blank";
+  if (tab.isNewTab) tab.title = "New Tab";
+  renderTabs();
   if (tab.id === activeId) updateChrome();
   if (!tab.priv && url && !url.startsWith("file://") && url !== "about:blank") {
     history.unshift({ url, title: tab.title || url, time: Date.now() });
@@ -107,7 +110,7 @@ function renderTabs() {
     else if (t.fav) fav.style.backgroundImage = `url("${t.fav}")`;
     const title = document.createElement("div");
     title.className = "title";
-    title.textContent = t.loading ? "Yükleniyor…" : (t.title || "Yeni sekme");
+    title.textContent = t.isNewTab ? "New Tab" : (t.loading ? "Yükleniyor…" : (t.title || "New Tab"));
     const close = document.createElement("button");
     close.className = "close";
     close.textContent = "✕";

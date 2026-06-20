@@ -29,6 +29,21 @@ Chromium üzerine geliştirilmiş ücretsiz bir Windows tarayıcısıdır.
 | Gizli sekme aç | `Ctrl+Shift+N` |
 | Sayfada bul | `Ctrl+F` |
 
+## Tanıtım görselleri
+
+| Gerçek Arda Browser arayüzü | Gizlilik ve koruma |
+|---|---|
+| ![Arda Browser gerçek ekran](docs/assets/arda-browser-gercek-ekran.jpg) | ![Arda Browser gizlilik](docs/assets/arda-browser-gizlilik.jpg) |
+
+![Arda Browser masaüstü tanıtımı](docs/assets/arda-browser-masaustu.jpg)
+
+## Tanıtım videoları
+
+[![Arda Browser dövme animasyonu](docs/assets/arda-browser-dovme-final.jpg)](https://ardas121.github.io/arda-browser/assets/arda-browser-dovme-animasyon.mp4)
+
+- [Müzik ritmine senkronize dövme animasyonunu izle](https://ardas121.github.io/arda-browser/assets/arda-browser-dovme-animasyon.mp4)
+- [Kısa Arda Browser tanıtımını izle](https://ardas121.github.io/arda-browser/assets/arda-browser-tanitim.mp4)
+
 ## Kurulum
 
 1. [En son Windows sürümünü indirin](../../releases/latest).
