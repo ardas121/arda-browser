@@ -8,6 +8,7 @@
   <title>Arda Browser — Web, senin kurallarına göre</title>
   <link rel="icon" href="icon.ico">
   <link rel="stylesheet" href="style.css">
+  <link rel="stylesheet" href="video.css">
 </head>
 <body>
   <header>
@@ -41,10 +42,22 @@
         <h2>Tanıtım ve gerçek arayüz</h2>
         <p>Gösterilen arayüz, Arda Browser'ın gerçek Windows sürümüne aittir.</p>
       </div>
-      <video controls playsinline preload="metadata" poster="assets/arda-browser-masaustu.jpg">
-        <source src="assets/arda-browser-tanitim.mp4" type="video/mp4">
-        Tarayıcınız video etiketini desteklemiyor.
-      </video>
+      <div class="video-stack">
+        <article class="video-card forge-card">
+          <div class="video-copy"><span class="tag">Darbeler geçer, Arda Browser kalır</span><h3>Dövülmüş kadar sağlam.</h3><p>Ne kadar darbe alırsa alsın bozulmayan Arda Browser.</p></div>
+          <video controls playsinline preload="metadata" poster="assets/arda-browser-dovme-final.jpg">
+            <source src="assets/arda-browser-dovme-animasyon.mp4" type="video/mp4">
+            Tarayıcınız video etiketini desteklemiyor.
+          </video>
+        </article>
+        <article class="video-card">
+          <div class="video-copy"><span class="tag">Kısa tanıtım</span><h3>Hızlı, sade ve güvenli.</h3></div>
+          <video controls playsinline preload="metadata" poster="assets/arda-browser-masaustu.jpg">
+            <source src="assets/arda-browser-tanitim.mp4" type="video/mp4">
+            Tarayıcınız video etiketini desteklemiyor.
+          </video>
+        </article>
+      </div>
       <div class="gallery">
         <figure><img loading="lazy" src="assets/arda-browser-gercek-ekran.jpg" alt="Arda Browser gerçek ana sayfa ekranı"><figcaption>Gerçek Arda Browser arayüzü</figcaption></figure>
         <figure><img loading="lazy" src="assets/arda-browser-masaustu.jpg" alt="Arda Browser masaüstü tanıtım görseli"><figcaption>Masaüstünde sade ve hızlı</figcaption></figure>
