@@ -53,6 +53,15 @@ Chromium üzerine geliştirilmiş ücretsiz bir Windows tarayıcısıdır.
 > Windows SmartScreen, uygulama henüz dijital olarak imzalanmadığı için ilk
 > çalıştırmada uyarı gösterebilir.
 
+## Google ile oturum açma
+
+Arda Browser 1.0.1, Google oturum açma uyumluluğu için güncel Electron/Chromium
+motorunu ve dinamik Chrome tarayıcı kimliğini kullanır.
+
+Google girişinde **Windows Güvenliği / Geçiş anahtarı seçin** penceresi açılırsa
+bu bir hata değildir. Geçiş anahtarı kullanmıyorsanız **İptal** düğmesine basıp
+Google sayfasındaki **Başka bir yöntem deneyin** veya şifre seçeneğini kullanın.
+
 ## Kaynak koddan çalıştırma
 
 Bilgisayarınızda [Node.js](https://nodejs.org/) kurulu olmalıdır.

@@ -1,8 +1,14 @@
 const { app, BrowserWindow, session, ipcMain } = require("electron");
 const path = require("path");
 
+// Eski/sabit bir Chrome surumu Google oturum acma sayfalarinda
+// "bu tarayici guvenli olmayabilir" hatasina yol acabiliyor. Electron'un
+// beraberinde gelen gercek Chromium surumunu kullan ve Electron imzasini UA'dan kaldir.
 const CHROME_UA =
-  "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/126.0.0.0 Safari/537.36";
+  `Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 ` +
+  `(KHTML, like Gecko) Chrome/${process.versions.chrome} Safari/537.36`;
+
+app.userAgentFallback = CHROME_UA;
 
 let mainWindow;
 let shieldsEnabled = true;
@@ -110,6 +116,8 @@ app.whenReady().then(() => {
   // Webview icinde target=_blank / window.open -> yeni sekme olarak ac
   app.on("web-contents-created", (e, contents) => {
     if (contents.getType() === "webview") {
+      // Ilk ag isteginden itibaren guncel Chrome kimligi kullanilsin.
+      contents.setUserAgent(CHROME_UA);
       contents.setWindowOpenHandler(({ url }) => {
         if (mainWindow && !mainWindow.isDestroyed())
           mainWindow.webContents.send("open-new-tab", url);
