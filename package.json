@@ -1,0 +1,35 @@
+{
+  "name": "arda-browser",
+  "version": "1.0.0",
+  "description": "Arda Browser - Brave benzeri, reklam/izleyici engelleyici tarayici",
+  "main": "main.js",
+  "scripts": {
+    "start": "electron .",
+    "dist": "electron-builder --win nsis",
+    "dist:dir": "electron-builder --win dir"
+  },
+  "author": "Arda",
+  "license": "MIT",
+  "devDependencies": {
+    "electron": "^31.7.7",
+    "electron-builder": "^26.0.12"
+  },
+  "build": {
+    "appId": "com.arda.browser",
+    "productName": "Arda Browser",
+    "artifactName": "Arda-Browser-Setup.${ext}",
+    "directories": { "output": "dist" },
+    "files": ["main.js", "preload.js", "renderer/**/*", "icon.ico", "package.json"],
+    "win": { "icon": "icon.ico", "target": "nsis" },
+    "nsis": {
+      "installerIcon": "icon.ico",
+      "uninstallerIcon": "icon.ico",
+      "installerHeaderIcon": "icon.ico",
+      "oneClick": false,
+      "allowToChangeInstallationDirectory": true,
+      "createDesktopShortcut": true,
+      "createStartMenuShortcut": true,
+      "shortcutName": "Arda Browser"
+    }
+  }
+}

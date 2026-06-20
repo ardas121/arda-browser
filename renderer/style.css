@@ -1,0 +1,156 @@
+:root {
+  --bg: #ffffff;
+  --bar: #eef0f3;         /* pasif sekme / pill */
+  --bar2: #ffffff;        /* arac cubugu / aktif sekme */
+  --line: #e5e7eb;
+  --ink: #202124;
+  --muted: #5f6368;
+  --accent: #fb542b;      /* Brave turuncu */
+  --accent2: #fb542b;
+  --active: #ffffff;
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+html, body { height: 100%; }
+body {
+  font-family: "Segoe UI", system-ui, sans-serif;
+  background: var(--bg);
+  color: var(--ink);
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+  overflow: hidden;
+  user-select: none;
+}
+button { font-family: inherit; cursor: pointer; }
+
+/* Sekmeler */
+#tabbar {
+  display: flex;
+  align-items: center;
+  background: var(--bg);
+  padding: 6px 6px 0 6px;
+  gap: 4px;
+}
+#tabs { display: flex; gap: 4px; flex: 1; overflow-x: auto; }
+#tabs::-webkit-scrollbar { height: 0; }
+.tab {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  min-width: 130px;
+  max-width: 220px;
+  padding: 8px 10px;
+  background: var(--bar);
+  border-radius: 9px 9px 0 0;
+  font-size: 12.5px;
+  color: var(--muted);
+  white-space: nowrap;
+  overflow: hidden;
+}
+.tab.active { background: var(--bar2); color: var(--ink); }
+.tab.private { border-top: 2px solid #a06bff; }
+.tab .favicon { width: 15px; height: 15px; flex: none; border-radius: 3px; background: #d4d7dd center/contain no-repeat; }
+.tab .title { flex: 1; overflow: hidden; text-overflow: ellipsis; }
+.tab .close { width: 18px; height: 18px; border-radius: 50%; border: none; background: transparent; color: var(--muted); font-size: 13px; line-height: 1; }
+.tab .close:hover { background: #d9dce1; color: var(--ink); }
+.tabbtn {
+  width: 30px; height: 30px; border: none; border-radius: 7px;
+  background: transparent; color: var(--muted); font-size: 19px;
+}
+.tabbtn:hover { background: var(--bar); color: var(--ink); }
+
+/* Arac cubugu */
+#toolbar {
+  display: flex; align-items: center; gap: 4px;
+  background: var(--bar2);
+  padding: 7px 9px;
+  border-bottom: 1px solid var(--line);
+}
+.navbtn {
+  height: 34px; min-width: 34px; padding: 0 9px;
+  border: none; border-radius: 8px;
+  background: transparent; color: var(--ink);
+  font-size: 16px; display: inline-flex; align-items: center; justify-content: center; gap: 5px;
+}
+.navbtn:hover { background: #eceef1; }
+.navbtn:disabled { opacity: .35; cursor: default; }
+.shields { color: var(--accent2); font-size: 13px; font-weight: 600; }
+#shieldcount { font-size: 11px; }
+#addrwrap {
+  flex: 1; display: flex; align-items: center; gap: 7px;
+  background: var(--bar); border: 1px solid var(--line);
+  border-radius: 18px; padding: 0 14px; height: 36px; margin: 0 6px;
+}
+#addrwrap:focus-within { border-color: var(--accent); }
+#lock { font-size: 11px; color: var(--muted); }
+#address {
+  flex: 1; border: none; outline: none; background: transparent;
+  color: var(--ink); font-size: 13.5px; user-select: text;
+}
+
+/* Yer imleri cubugu */
+#bookmarksbar {
+  display: flex; align-items: center; gap: 4px;
+  padding: 4px 9px; background: var(--bar2);
+  border-bottom: 1px solid var(--line);
+  overflow-x: auto; min-height: 30px;
+}
+#bookmarksbar:empty { display: none; }
+#bookmarksbar::-webkit-scrollbar { height: 0; }
+.bm {
+  display: flex; align-items: center; gap: 6px;
+  padding: 4px 9px; border-radius: 6px;
+  font-size: 12px; color: var(--muted); white-space: nowrap;
+}
+.bm:hover { background: #eceef1; color: var(--ink); }
+
+/* Bul cubugu */
+#findbar {
+  display: flex; align-items: center; gap: 6px;
+  position: absolute; top: 96px; right: 18px; z-index: 40;
+  background: var(--bar2); border: 1px solid var(--line);
+  border-radius: 10px; padding: 6px 8px; box-shadow: 0 8px 24px rgba(0,0,0,.45);
+}
+#findinput { background: var(--bg); border: 1px solid var(--line); color: var(--ink); border-radius: 6px; padding: 5px 8px; outline: none; user-select: text; }
+#findcount { font-size: 11px; color: var(--muted); min-width: 34px; text-align: center; }
+
+/* Webview alani */
+#views { flex: 1; position: relative; background: #fff; }
+#views webview { position: absolute; inset: 0; width: 100%; height: 100%; display: none; }
+#views webview.active { display: flex; }
+
+/* Menu */
+.panel {
+  position: absolute; z-index: 50;
+  background: var(--bar2); border: 1px solid var(--line);
+  border-radius: 10px; padding: 6px; box-shadow: 0 12px 30px rgba(0,0,0,.5);
+}
+#menupanel { top: 92px; right: 10px; width: 210px; }
+.menuitem { padding: 9px 12px; border-radius: 7px; font-size: 13px; }
+.menuitem:hover { background: var(--accent); color: #fff; }
+.sep { height: 1px; background: var(--line); margin: 5px 4px; }
+
+/* Yan panel */
+#overlay { position: absolute; inset: 0; background: rgba(0,0,0,.4); z-index: 60; }
+#sidepanel {
+  position: absolute; top: 0; right: 0; bottom: 0; width: 380px; z-index: 61;
+  background: var(--bar); border-left: 1px solid var(--line);
+  display: flex; flex-direction: column; box-shadow: -10px 0 30px rgba(0,0,0,.4);
+}
+#panelhead { display: flex; align-items: center; padding: 14px 16px; border-bottom: 1px solid var(--line); }
+#paneltitle { flex: 1; font-size: 16px; font-weight: 700; }
+#panelbody { flex: 1; overflow-y: auto; padding: 10px 12px; }
+.row { display: flex; align-items: center; gap: 10px; padding: 10px; border-radius: 8px; font-size: 13px; }
+.row:hover { background: var(--bar2); }
+.row .ico { width: 18px; text-align: center; }
+.row .meta { flex: 1; overflow: hidden; }
+.row .meta .t { color: var(--ink); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.row .meta .u { color: var(--muted); font-size: 11px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.row .del { color: var(--muted); border: none; background: transparent; font-size: 14px; }
+.row .del:hover { color: var(--accent); }
+.empty { color: var(--muted); text-align: center; padding: 40px 10px; font-size: 13px; }
+.setting { padding: 12px 6px; border-bottom: 1px solid var(--line); }
+.setting label { display: block; font-size: 12px; color: var(--muted); margin-bottom: 6px; }
+.setting select, .setting input { width: 100%; background: var(--bg); color: var(--ink); border: 1px solid var(--line); border-radius: 8px; padding: 8px; outline: none; }
+.btn { background: var(--accent); color: #fff; border: none; border-radius: 8px; padding: 9px 12px; font-size: 13px; width: 100%; }
+.hidden { display: none !important; }

@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+  <meta charset="UTF-8" />
+  <title>Arda Browser</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <!-- Sekme seridi -->
+  <div id="tabbar">
+    <div id="tabs"></div>
+    <button id="newtab" class="tabbtn" title="Yeni sekme (Ctrl+T)">+</button>
+  </div>
+
+  <!-- Arac cubugu -->
+  <div id="toolbar">
+    <button id="back" class="navbtn" title="Geri">‹</button>
+    <button id="forward" class="navbtn" title="İleri">›</button>
+    <button id="reload" class="navbtn" title="Yenile (Ctrl+R)">⟳</button>
+    <button id="home" class="navbtn" title="Ana sayfa">⌂</button>
+    <div id="addrwrap">
+      <span id="lock">🔒</span>
+      <input id="address" type="text" spellcheck="false" placeholder="Ara veya adres gir" />
+    </div>
+    <button id="shields" class="navbtn shields" title="Reklam engelleyici (Shields)">
+      🛡 <span id="shieldcount">0</span>
+    </button>
+    <button id="star" class="navbtn" title="Yer imine ekle">☆</button>
+    <button id="menu" class="navbtn" title="Menü">☰</button>
+  </div>
+
+  <!-- Yer imleri cubugu -->
+  <div id="bookmarksbar"></div>
+
+  <!-- Bul cubugu -->
+  <div id="findbar" class="hidden">
+    <input id="findinput" type="text" placeholder="Sayfada bul" />
+    <span id="findcount">0/0</span>
+    <button id="findprev" class="navbtn">↑</button>
+    <button id="findnext" class="navbtn">↓</button>
+    <button id="findclose" class="navbtn">✕</button>
+  </div>
+
+  <!-- Webview'lerin durdugu alan -->
+  <div id="views"></div>
+
+  <!-- Menu -->
+  <div id="menupanel" class="panel hidden">
+    <div class="menuitem" data-act="newtab">＋ Yeni sekme</div>
+    <div class="menuitem" data-act="private">🕶 Yeni gizli sekme</div>
+    <div class="sep"></div>
+    <div class="menuitem" data-act="bookmarks">★ Yer imleri</div>
+    <div class="menuitem" data-act="history">🕘 Geçmiş</div>
+    <div class="menuitem" data-act="downloads">⬇ İndirilenler</div>
+    <div class="menuitem" data-act="find">🔍 Sayfada bul</div>
+    <div class="sep"></div>
+    <div class="menuitem" data-act="settings">⚙ Ayarlar</div>
+  </div>
+
+  <!-- Yan panel (gecmis / indirilenler / yer imleri / ayarlar) -->
+  <div id="overlay" class="hidden"></div>
+  <div id="sidepanel" class="hidden">
+    <div id="panelhead"><span id="paneltitle"></span><button id="panelclose" class="navbtn">✕</button></div>
+    <div id="panelbody"></div>
+  </div>
+
+  <script src="renderer.js"></script>
+</body>
+</html>

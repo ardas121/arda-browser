@@ -1,0 +1,68 @@
+<!doctype html>
+<html lang="tr">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="Arda Browser - hızlı, sade ve reklam engelleyicili Windows tarayıcısı.">
+  <meta name="theme-color" content="#090b12">
+  <title>Arda Browser — Web, senin kurallarına göre</title>
+  <link rel="icon" href="icon.ico">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <header>
+    <a class="brand" href="./" aria-label="Arda Browser ana sayfa">
+      <img src="icon.ico" alt="">
+      <span>Arda Browser</span>
+    </a>
+    <a class="nav-download download-link" href="#">İndir</a>
+  </header>
+
+  <main>
+    <section class="hero">
+      <div class="hero-copy">
+        <span class="tag">Windows 10 ve 11 için</span>
+        <h1>Web, senin<br><em>kurallarına göre.</em></h1>
+        <p>Hızlı gezinme, yerleşik reklam engelleme ve gizli sekmeler. Arda Browser ile internette ihtiyacın olan her şey tek yerde.</p>
+        <div class="actions">
+          <a class="button primary download-link" href="#">Windows için indir <span>↓</span></a>
+          <a class="button secondary releases-link" href="#">Tüm sürümler</a>
+        </div>
+        <small>Ücretsiz · Sürüm 1.0.0 · 64-bit Windows</small>
+      </div>
+      <div class="logo-stage">
+        <div class="orbit one"></div><div class="orbit two"></div>
+        <div class="logo-card"><img src="icon.ico" alt="Arda Browser logosu"></div>
+      </div>
+    </section>
+
+    <section class="features" aria-label="Özellikler">
+      <article><b>01</b><div class="symbol">🛡️</div><h2>Reklamları engelle</h2><p>Yerleşik Shields ile reklam ve izleyicileri sayfa açılmadan durdur.</p></article>
+      <article><b>02</b><div class="symbol">🕶️</div><h2>Gizli gezin</h2><p>Ayrı oturum kullanan gizli sekmelerle daha özel bir alan oluştur.</p></article>
+      <article><b>03</b><div class="symbol">⚡</div><h2>Hızlı ve sade</h2><p>Sekmeler, yer imleri, geçmiş ve indirmeler elinin altında olsun.</p></article>
+    </section>
+
+    <section class="cta">
+      <div><span class="tag">Başlamaya hazır mısın?</span><h2>Arda Browser'ı şimdi dene.</h2></div>
+      <a class="button primary download-link" href="#">Ücretsiz indir <span>↓</span></a>
+    </section>
+  </main>
+
+  <footer><span>Arda Browser</span><span>Made by Arda · 2026</span></footer>
+
+  <script>
+    (() => {
+      const host = location.hostname;
+      if (!host.endsWith('.github.io')) return;
+      const owner = host.slice(0, -10);
+      const repo = location.pathname.split('/').filter(Boolean)[0];
+      if (!owner || !repo) return;
+      const releases = `https://github.com/${owner}/${repo}/releases`;
+      document.querySelectorAll('.download-link').forEach(link => {
+        link.href = `${releases}/latest/download/Arda-Browser-Setup.exe`;
+      });
+      document.querySelectorAll('.releases-link').forEach(link => link.href = releases);
+    })();
+  </script>
+</body>
+</html>
