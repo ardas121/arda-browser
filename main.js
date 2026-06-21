@@ -1,4 +1,4 @@
-const { app, BrowserWindow, session, ipcMain, shell } = require("electron");
+const { app, BrowserWindow, session, ipcMain } = require("electron");
 const path = require("path");
 
 // Eski/sabit bir Chrome surumu Google oturum acma sayfalarinda
@@ -7,13 +7,14 @@ const path = require("path");
 const CHROME_UA =
   `Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 ` +
   `(KHTML, like Gecko) Chrome/${process.versions.chrome} Safari/537.36`;
+const GOOGLE_AUTH_UA =
+  "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:152.0) Gecko/20100101 Firefox/152.0";
 
 app.userAgentFallback = CHROME_UA;
 
 let mainWindow;
 let shieldsEnabled = true;
 let blockedCount = 0;
-let lastExternalAuth = { url: "", time: 0 };
 
 // Windows gorev cubugunda uygulamanin kendi ikonunun kullanilmasini saglar.
 if (process.platform === "win32") app.setAppUserModelId("com.arda.browser");
@@ -77,18 +78,18 @@ function isGoogleAuthUrl(rawUrl) {
   }
 }
 
-function openGoogleAuthExternally(url) {
-  const now = Date.now();
-  // Ayni yonlendirme arka arkaya birden fazla olay uretirse tek pencere ac.
-  if (lastExternalAuth.url === url && now - lastExternalAuth.time < 3000) return;
-  lastExternalAuth = { url, time: now };
-  shell.openExternal(url).catch((error) => {
-    console.error("Google giris sayfasi acilamadi:", error);
-  });
-}
-
 function attachSession(ses) {
   ses.setUserAgent(CHROME_UA);
+  // Google OAuth, Electron/Chromium webview kimligini bazi hesaplarda reddediyor.
+  // Yalnizca Google giris isteginde Firefox uyumluluk kimligi kullan.
+  ses.webRequest.onBeforeSendHeaders({ urls: ["https://accounts.google.com/*"] }, (details, cb) => {
+    const requestHeaders = { ...details.requestHeaders };
+    for (const name of Object.keys(requestHeaders)) {
+      if (name.toLowerCase().startsWith("sec-ch-ua")) delete requestHeaders[name];
+    }
+    requestHeaders["User-Agent"] = GOOGLE_AUTH_UA;
+    cb({ requestHeaders });
+  });
   ses.webRequest.onBeforeRequest({ urls: ["*://*/*"] }, (details, cb) => {
     if (shieldsEnabled && isBlocked(details.url)) {
       blockedCount++;
@@ -138,18 +139,13 @@ app.whenReady().then(() => {
     if (contents.getType() === "webview") {
       // Ilk ag isteginden itibaren guncel Chrome kimligi kullanilsin.
       contents.setUserAgent(CHROME_UA);
-      const redirectGoogleAuth = (event, url) => {
-        if (!isGoogleAuthUrl(url)) return;
-        event.preventDefault();
-        openGoogleAuthExternally(url);
+      const updateLoginUserAgent = (_event, url) => {
+        contents.setUserAgent(isGoogleAuthUrl(url) ? GOOGLE_AUTH_UA : CHROME_UA);
       };
-      contents.on("will-navigate", redirectGoogleAuth);
-      contents.on("will-redirect", redirectGoogleAuth);
+      contents.on("did-start-navigation", updateLoginUserAgent);
+      contents.on("will-navigate", updateLoginUserAgent);
+      contents.on("will-redirect", updateLoginUserAgent);
       contents.setWindowOpenHandler(({ url }) => {
-        if (isGoogleAuthUrl(url)) {
-          openGoogleAuthExternally(url);
-          return { action: "deny" };
-        }
         if (mainWindow && !mainWindow.isDestroyed())
           mainWindow.webContents.send("open-new-tab", url);
         return { action: "deny" };

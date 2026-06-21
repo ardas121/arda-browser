@@ -1,5 +1,6 @@
 // ---------- Durum ----------
 const NEWTAB = "newtab.html";
+const GOOGLE_AUTH_UA = "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:152.0) Gecko/20100101 Firefox/152.0";
 let tabs = [];
 let activeId = null;
 let tabSeq = 0;
@@ -79,11 +80,21 @@ function newtabUrl() {
     "?lang=" + encodeURIComponent(settings.language);
 }
 
+function isGoogleAuthUrl(rawUrl) {
+  try {
+    const url = new URL(rawUrl);
+    return url.protocol === "https:" && url.hostname === "accounts.google.com";
+  } catch {
+    return false;
+  }
+}
+
 // ---------- Sekme yonetimi ----------
 function createTab(url, opts = {}) {
   const id = ++tabSeq;
   const wv = document.createElement("webview");
   wv.setAttribute("allowpopups", "");
+  if (url && isGoogleAuthUrl(url)) wv.setAttribute("useragent", GOOGLE_AUTH_UA);
   if (opts.priv) wv.setAttribute("partition", "incognito");
   wv.dataset.id = id;
   wv.src = url || newtabUrl();
