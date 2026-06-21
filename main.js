@@ -1,4 +1,4 @@
-const { app, BrowserWindow, session, ipcMain } = require("electron");
+const { app, BrowserWindow, session, ipcMain, shell } = require("electron");
 const path = require("path");
 
 // Eski/sabit bir Chrome surumu Google oturum acma sayfalarinda
@@ -13,6 +13,7 @@ app.userAgentFallback = CHROME_UA;
 let mainWindow;
 let shieldsEnabled = true;
 let blockedCount = 0;
+let lastExternalAuth = { url: "", time: 0 };
 
 // Windows gorev cubugunda uygulamanin kendi ikonunun kullanilmasini saglar.
 if (process.platform === "win32") app.setAppUserModelId("com.arda.browser");
@@ -67,6 +68,25 @@ function sendCount() {
     mainWindow.webContents.send("blocked-count", blockedCount);
 }
 
+function isGoogleAuthUrl(rawUrl) {
+  try {
+    const url = new URL(rawUrl);
+    return url.protocol === "https:" && url.hostname === "accounts.google.com";
+  } catch {
+    return false;
+  }
+}
+
+function openGoogleAuthExternally(url) {
+  const now = Date.now();
+  // Ayni yonlendirme arka arkaya birden fazla olay uretirse tek pencere ac.
+  if (lastExternalAuth.url === url && now - lastExternalAuth.time < 3000) return;
+  lastExternalAuth = { url, time: now };
+  shell.openExternal(url).catch((error) => {
+    console.error("Google giris sayfasi acilamadi:", error);
+  });
+}
+
 function attachSession(ses) {
   ses.setUserAgent(CHROME_UA);
   ses.webRequest.onBeforeRequest({ urls: ["*://*/*"] }, (details, cb) => {
@@ -118,7 +138,18 @@ app.whenReady().then(() => {
     if (contents.getType() === "webview") {
       // Ilk ag isteginden itibaren guncel Chrome kimligi kullanilsin.
       contents.setUserAgent(CHROME_UA);
+      const redirectGoogleAuth = (event, url) => {
+        if (!isGoogleAuthUrl(url)) return;
+        event.preventDefault();
+        openGoogleAuthExternally(url);
+      };
+      contents.on("will-navigate", redirectGoogleAuth);
+      contents.on("will-redirect", redirectGoogleAuth);
       contents.setWindowOpenHandler(({ url }) => {
+        if (isGoogleAuthUrl(url)) {
+          openGoogleAuthExternally(url);
+          return { action: "deny" };
+        }
         if (mainWindow && !mainWindow.isDestroyed())
           mainWindow.webContents.send("open-new-tab", url);
         return { action: "deny" };

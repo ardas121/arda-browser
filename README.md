@@ -57,12 +57,10 @@ Chromium üzerine geliştirilmiş ücretsiz bir Windows tarayıcısıdır.
 
 ## Google ile oturum açma
 
-Arda Browser 1.0.1, Google oturum açma uyumluluğu için güncel Electron/Chromium
-motorunu ve dinamik Chrome tarayıcı kimliğini kullanır.
-
-Google girişinde **Windows Güvenliği / Geçiş anahtarı seçin** penceresi açılırsa
-bu bir hata değildir. Geçiş anahtarı kullanmıyorsanız **İptal** düğmesine basıp
-Google sayfasındaki **Başka bir yöntem deneyin** veya şifre seçeneğini kullanın.
+Google, güvenlik politikası nedeniyle Electron içindeki gömülü OAuth girişlerini
+engeller. Arda Browser 1.0.2 ve sonraki sürümlerde bir sitede **Google ile giriş**
+seçildiğinde giriş sayfası otomatik olarak Windows'ta ayarlı varsayılan tarayıcıda
+açılır. Diğer sayfalar Arda Browser içinde kalmaya devam eder.
 
 ## Kaynak koddan çalıştırma
 
