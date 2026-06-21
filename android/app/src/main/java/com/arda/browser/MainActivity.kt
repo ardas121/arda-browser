@@ -800,6 +800,7 @@ class MainActivity : AppCompatActivity() {
         val p = PopupMenu(this, anchor)
         p.menu.add(0, 1, 0, "＋  Yeni sekme")
         p.menu.add(0, 2, 1, "🕶  Yeni gizli sekme")
+        p.menu.add(0, 12, 2, "✨  Arda AI")
         val url = current?.web?.url
         val isBm = url != null && hasBookmark(url)
         p.menu.add(0, 3, 5, if (isBm) "★  Yer iminden çıkar" else "☆  Yer imine ekle")
@@ -824,6 +825,7 @@ class MainActivity : AppCompatActivity() {
                 9 -> translatePage()
                 10 -> showDownloads()
                 11 -> toggleDesktop()
+                12 -> addTab("https://duck.ai")
             }
             true
         }

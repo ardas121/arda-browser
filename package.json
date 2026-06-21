@@ -1,6 +1,6 @@
 {
   "name": "arda-browser",
-  "version": "1.0.7",
+  "version": "1.0.8",
   "description": "Arda Browser - Brave benzeri, reklam/izleyici engelleyici tarayici",
   "main": "main.js",
   "scripts": {
@@ -9,7 +9,7 @@
     "dist:dir": "electron-builder --win dir"
   },
   "author": "Arda",
-  "license": "MIT",
+  "license": "GPL-3.0-only",
   "devDependencies": {
     "electron": "^42.4.1",
     "electron-builder": "^26.0.12"
@@ -27,12 +27,17 @@
       "renderer/**/*",
       "icon.ico",
       "README.txt",
+      "LICENSE",
       "package.json"
     ],
     "extraFiles": [
       {
         "from": "README.txt",
         "to": "README.txt"
+      },
+      {
+        "from": "LICENSE",
+        "to": "LICENSE"
       }
     ],
     "win": {
@@ -46,6 +51,21 @@
       "installerSidebar": "build/installerSidebar.bmp",
       "uninstallerSidebar": "build/uninstallerSidebar.bmp",
       "oneClick": false,
+      "displayLanguageSelector": true,
+      "installerLanguages": [
+        "tr_TR",
+        "en_US",
+        "de_DE",
+        "fr_FR",
+        "es_ES",
+        "pt_PT",
+        "ru_RU",
+        "ar_SA",
+        "zh_CN",
+        "ja_JP",
+        "ko_KR",
+        "hi_IN"
+      ],
       "allowToChangeInstallationDirectory": true,
       "createDesktopShortcut": true,
       "createStartMenuShortcut": true,

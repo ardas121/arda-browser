@@ -4,6 +4,7 @@ const GOOGLE_AUTH_UA = "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:152.0) Geck
 let tabs = [];
 let activeId = null;
 let tabSeq = 0;
+let draggedTabId = null;
 
 const store = {
   get(k, d) { try { return JSON.parse(localStorage.getItem(k)) ?? d; } catch { return d; } },
@@ -189,13 +190,15 @@ function createTab(url, opts = {}) {
   wv.src = url || newtabUrl();
   views.appendChild(wv);
 
-  const tab = { id, wv, title: t("newTab"), url: url || "", isNewTab: !url, priv: !!opts.priv, loading: false, fav: "", justOpened: true };
+  const isAi = !!opts.ai || /^https:\/\/(?:www\.)?duck\.ai(?:\/|$)/i.test(url || "");
+  const tab = { id, wv, title: isAi ? "Arda AI" : t("newTab"), url: url || "", isNewTab: !url, priv: !!opts.priv, ai: isAi, loading: false, fav: "", justOpened: true };
   tabs.push(tab);
 
-  wv.addEventListener("page-title-updated", (e) => { tab.title = e.title; renderTabs(); });
+  wv.addEventListener("page-title-updated", (e) => { tab.title = tab.ai ? "Arda AI" : e.title; renderTabs(); });
   wv.addEventListener("page-favicon-updated", (e) => { tab.fav = (e.favicons && e.favicons[0]) || ""; renderTabs(); });
-  wv.addEventListener("did-start-loading", () => { tab.loading = true; if (id === activeId) updateChrome(); });
-  wv.addEventListener("did-stop-loading", () => { tab.loading = false; if (id === activeId) updateChrome(); });
+  wv.addEventListener("did-start-loading", () => { tab.loading = true; renderTabs(); if (id === activeId) updateChrome(); });
+  wv.addEventListener("did-stop-loading", () => { tab.loading = false; renderTabs(); if (id === activeId) updateChrome(); });
+  wv.addEventListener("did-fail-load", () => { tab.loading = false; renderTabs(); if (id === activeId) updateChrome(); });
   wv.addEventListener("did-navigate", (e) => { tab.url = e.url; onNavigate(tab, e.url); });
   wv.addEventListener("did-navigate-in-page", (e) => { if (e.isMainFrame) { tab.url = e.url; onNavigate(tab, e.url); } });
   wv.addEventListener("found-in-page", (e) => {
@@ -259,6 +262,28 @@ function renderTabs() {
     const el = document.createElement("div");
     el.className = "tab" + (t.id === activeId ? " active" : "") + (t.priv ? " private" : "") + (t.closing ? " closing" : "");
     if (t.justOpened) { el.classList.add("opening"); t.justOpened = false; }
+    el.draggable = !t.closing;
+    el.addEventListener("dragstart", (event) => {
+      draggedTabId = t.id;
+      el.classList.add("dragging");
+      event.dataTransfer.effectAllowed = "move";
+      event.dataTransfer.setData("text/plain", String(t.id));
+    });
+    el.addEventListener("dragover", (event) => { event.preventDefault(); if (draggedTabId !== t.id) el.classList.add("drag-target"); });
+    el.addEventListener("dragleave", () => el.classList.remove("drag-target"));
+    el.addEventListener("drop", (event) => {
+      event.preventDefault();
+      const from = tabs.findIndex((x) => x.id === draggedTabId);
+      const to = tabs.findIndex((x) => x.id === t.id);
+      if (from >= 0 && to >= 0 && from !== to) {
+        const [moved] = tabs.splice(from, 1);
+        tabs.splice(to, 0, moved);
+        renderTabs();
+        saveSession();
+      }
+      draggedTabId = null;
+    });
+    el.addEventListener("dragend", () => { draggedTabId = null; renderTabs(); });
     const fav = document.createElement("div");
     fav.className = "favicon";
     if (t.priv) fav.textContent = "🕶";
@@ -332,7 +357,15 @@ $("#back").onclick = () => { const t = activeTab(); try { t.wv.goBack(); } catch
 $("#forward").onclick = () => { const t = activeTab(); try { t.wv.goForward(); } catch {} };
 $("#reload").onclick = () => { const t = activeTab(); if (t.loading) t.wv.stop(); else t.wv.reload(); };
 $("#home").onclick = () => go(newtabUrl());
-$("#newtab").onclick = () => createTab();
+$("#newtab").onclick = () => {
+  const button = $("#newtab");
+  button.classList.remove("pulse");
+  void button.offsetWidth;
+  button.classList.add("pulse");
+  createTab();
+};
+$("#newtab").addEventListener("animationend", () => $("#newtab").classList.remove("pulse"));
+$("#ardaai").onclick = () => createTab("https://duck.ai", { ai: true });
 
 // ---------- Yer imleri ----------
 $("#star").onclick = () => {

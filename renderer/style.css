@@ -71,6 +71,12 @@ button { font-family: inherit; cursor: pointer; }
   background: transparent; color: var(--muted); font-size: 19px;
 }
 .tabbtn:hover { background: var(--bar); color: var(--ink); }
+.tabbtn, .navbtn { transition: transform .12s ease, background .12s ease, box-shadow .12s ease; }
+.tabbtn:active, .navbtn:active { transform: scale(.86); }
+.tab.dragging { opacity: .45; transform: scale(.96); }
+.tab.drag-target { box-shadow: inset 3px 0 0 var(--accent); }
+@keyframes plusPulse { 50% { transform: rotate(90deg) scale(1.18); color: var(--accent); } }
+.tabbtn.pulse { animation: plusPulse .28s ease; }
 
 /* Arac cubugu */
 #toolbar {
@@ -88,6 +94,7 @@ button { font-family: inherit; cursor: pointer; }
 .navbtn:hover { background: #eceef1; }
 .navbtn:disabled { opacity: .35; cursor: default; }
 .shields { color: var(--accent2); font-size: 13px; font-weight: 600; }
+.ai-btn { color: var(--accent); font-size: 12px; font-weight: 700; white-space: nowrap; }
 #shieldcount { font-size: 11px; }
 #addrwrap {
   position: relative;
@@ -139,6 +146,7 @@ html[dir="rtl"] .address-suggestions { text-align: right; }
 
 @media (max-width: 900px) {
   .language-select { max-width: 48px; padding: 0 4px; }
+  .ai-btn span { display: none; }
 }
 
 /* Yer imleri cubugu */
