@@ -18,7 +18,13 @@ Chromium üzerine geliştirilmiş ücretsiz bir Windows tarayıcısıdır.
 - ⬇️ İndirilen dosyaları takip etme
 - 🔍 Sayfa içinde arama (`Ctrl+F`)
 - ⚙️ Arama motoru ve Shields ayarları
+- 🌐 Araç çubuğundan seçilebilen 12 arayüz dili
 - ⌨️ Kullanışlı klavye kısayolları
+
+### Desteklenen diller
+
+Türkçe, English, Deutsch, Français, Español, Português, Русский, العربية,
+中文, 日本語, 한국어 ve हिन्दी.
 
 ## Klavye kısayolları
 

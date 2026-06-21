@@ -9,24 +9,38 @@
   <!-- Sekme seridi -->
   <div id="tabbar">
     <div id="tabs"></div>
-    <button id="newtab" class="tabbtn" title="Yeni sekme (Ctrl+T)">+</button>
+    <button id="newtab" class="tabbtn" title="Yeni sekme (Ctrl+T)" data-i18n-title="newTab">+</button>
   </div>
 
   <!-- Arac cubugu -->
   <div id="toolbar">
-    <button id="back" class="navbtn" title="Geri">‹</button>
-    <button id="forward" class="navbtn" title="İleri">›</button>
-    <button id="reload" class="navbtn" title="Yenile (Ctrl+R)">⟳</button>
-    <button id="home" class="navbtn" title="Ana sayfa">⌂</button>
+    <button id="back" class="navbtn" title="Geri" data-i18n-title="back">‹</button>
+    <button id="forward" class="navbtn" title="İleri" data-i18n-title="forward">›</button>
+    <button id="reload" class="navbtn" title="Yenile (Ctrl+R)" data-i18n-title="reload">⟳</button>
+    <button id="home" class="navbtn" title="Ana sayfa" data-i18n-title="home">⌂</button>
     <div id="addrwrap">
       <span id="lock">🔒</span>
-      <input id="address" type="text" spellcheck="false" placeholder="Ara veya adres gir" />
+      <input id="address" type="text" spellcheck="false" placeholder="Ara veya adres gir" data-i18n-placeholder="addressPlaceholder" />
     </div>
-    <button id="shields" class="navbtn shields" title="Reklam engelleyici (Shields)">
+    <select id="languageSelect" class="language-select" title="Dil" aria-label="Language">
+      <option value="tr">🌐 Türkçe</option>
+      <option value="en">🌐 English</option>
+      <option value="de">🌐 Deutsch</option>
+      <option value="fr">🌐 Français</option>
+      <option value="es">🌐 Español</option>
+      <option value="pt">🌐 Português</option>
+      <option value="ru">🌐 Русский</option>
+      <option value="ar">🌐 العربية</option>
+      <option value="zh">🌐 中文</option>
+      <option value="ja">🌐 日本語</option>
+      <option value="ko">🌐 한국어</option>
+      <option value="hi">🌐 हिन्दी</option>
+    </select>
+    <button id="shields" class="navbtn shields" title="Reklam engelleyici (Shields)" data-i18n-title="shieldsTitle">
       🛡 <span id="shieldcount">0</span>
     </button>
-    <button id="star" class="navbtn" title="Yer imine ekle">☆</button>
-    <button id="menu" class="navbtn" title="Menü">☰</button>
+    <button id="star" class="navbtn" title="Yer imine ekle" data-i18n-title="addBookmark">☆</button>
+    <button id="menu" class="navbtn" title="Menü" data-i18n-title="menu">☰</button>
   </div>
 
   <!-- Yer imleri cubugu -->
@@ -34,7 +48,7 @@
 
   <!-- Bul cubugu -->
   <div id="findbar" class="hidden">
-    <input id="findinput" type="text" placeholder="Sayfada bul" />
+    <input id="findinput" type="text" placeholder="Sayfada bul" data-i18n-placeholder="findPage" />
     <span id="findcount">0/0</span>
     <button id="findprev" class="navbtn">↑</button>
     <button id="findnext" class="navbtn">↓</button>
@@ -46,15 +60,15 @@
 
   <!-- Menu -->
   <div id="menupanel" class="panel hidden">
-    <div class="menuitem" data-act="newtab">＋ Yeni sekme</div>
-    <div class="menuitem" data-act="private">🕶 Yeni gizli sekme</div>
+    <div class="menuitem" data-act="newtab">＋ <span data-i18n="newTab">Yeni sekme</span></div>
+    <div class="menuitem" data-act="private">🕶 <span data-i18n="privateTab">Yeni gizli sekme</span></div>
     <div class="sep"></div>
-    <div class="menuitem" data-act="bookmarks">★ Yer imleri</div>
-    <div class="menuitem" data-act="history">🕘 Geçmiş</div>
-    <div class="menuitem" data-act="downloads">⬇ İndirilenler</div>
-    <div class="menuitem" data-act="find">🔍 Sayfada bul</div>
+    <div class="menuitem" data-act="bookmarks">★ <span data-i18n="bookmarks">Yer imleri</span></div>
+    <div class="menuitem" data-act="history">🕘 <span data-i18n="history">Geçmiş</span></div>
+    <div class="menuitem" data-act="downloads">⬇ <span data-i18n="downloads">İndirilenler</span></div>
+    <div class="menuitem" data-act="find">🔍 <span data-i18n="findPage">Sayfada bul</span></div>
     <div class="sep"></div>
-    <div class="menuitem" data-act="settings">⚙ Ayarlar</div>
+    <div class="menuitem" data-act="settings">⚙ <span data-i18n="settings">Ayarlar</span></div>
   </div>
 
   <!-- Yan panel (gecmis / indirilenler / yer imleri / ayarlar) -->
@@ -64,6 +78,7 @@
     <div id="panelbody"></div>
   </div>
 
+  <script src="i18n.js"></script>
   <script src="renderer.js"></script>
 </body>
 </html>

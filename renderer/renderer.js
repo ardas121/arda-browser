@@ -8,7 +8,15 @@ const store = {
   get(k, d) { try { return JSON.parse(localStorage.getItem(k)) ?? d; } catch { return d; } },
   set(k, v) { localStorage.setItem(k, JSON.stringify(v)); }
 };
-let settings = store.get("settings", { engine: "ddg", theme: "dark" });
+const browserLanguage = (navigator.language || "en").split("-")[0].toLowerCase();
+const defaultLanguage = window.ARDA_I18N.supported.includes(browserLanguage) ? browserLanguage : "en";
+let settings = {
+  engine: "ddg",
+  theme: "dark",
+  language: defaultLanguage,
+  ...store.get("settings", {})
+};
+if (!window.ARDA_I18N.supported.includes(settings.language)) settings.language = defaultLanguage;
 let bookmarks = store.get("bookmarks", []);
 let history = store.get("history", []);
 let downloads = [];
@@ -17,6 +25,39 @@ const $ = (s) => document.querySelector(s);
 const views = $("#views");
 const tabsEl = $("#tabs");
 const addr = $("#address");
+const languageSelect = $("#languageSelect");
+
+function t(key) {
+  return window.ARDA_I18N.get(settings.language, key);
+}
+
+function applyLanguage() {
+  document.documentElement.lang = settings.language;
+  document.documentElement.dir = settings.language === "ar" ? "rtl" : "ltr";
+  document.querySelectorAll("[data-i18n]").forEach((el) => {
+    el.textContent = t(el.dataset.i18n);
+  });
+  document.querySelectorAll("[data-i18n-title]").forEach((el) => {
+    el.title = t(el.dataset.i18nTitle);
+  });
+  document.querySelectorAll("[data-i18n-placeholder]").forEach((el) => {
+    el.placeholder = t(el.dataset.i18nPlaceholder);
+  });
+  languageSelect.value = settings.language;
+}
+
+languageSelect.addEventListener("change", () => {
+  settings.language = languageSelect.value;
+  store.set("settings", settings);
+  applyLanguage();
+  tabs.forEach((tab) => {
+    if (!tab.isNewTab) return;
+    tab.title = t("newTab");
+    tab.wv.loadURL(newtabUrl());
+  });
+  renderTabs();
+  if (!side.classList.contains("hidden")) closePanel();
+});
 
 // ---------- Adres / arama ----------
 function searchUrl(q) {
@@ -34,7 +75,8 @@ function normalize(text) {
   return searchUrl(text);
 }
 function newtabUrl() {
-  return "file://" + location.pathname.replace(/index\.html$/, NEWTAB);
+  return "file://" + location.pathname.replace(/index\.html$/, NEWTAB) +
+    "?lang=" + encodeURIComponent(settings.language);
 }
 
 // ---------- Sekme yonetimi ----------
@@ -47,7 +89,7 @@ function createTab(url, opts = {}) {
   wv.src = url || newtabUrl();
   views.appendChild(wv);
 
-  const tab = { id, wv, title: "New Tab", url: url || "", isNewTab: !url, priv: !!opts.priv, loading: false, fav: "" };
+  const tab = { id, wv, title: t("newTab"), url: url || "", isNewTab: !url, priv: !!opts.priv, loading: false, fav: "" };
   tabs.push(tab);
 
   wv.addEventListener("page-title-updated", (e) => { tab.title = e.title; renderTabs(); });
@@ -68,7 +110,7 @@ function createTab(url, opts = {}) {
 
 function onNavigate(tab, url) {
   tab.isNewTab = !url || url.startsWith("file://") || url === "about:blank";
-  if (tab.isNewTab) tab.title = "New Tab";
+  if (tab.isNewTab) tab.title = t("newTab");
   renderTabs();
   if (tab.id === activeId) updateChrome();
   if (!tab.priv && url && !url.startsWith("file://") && url !== "about:blank") {
@@ -110,7 +152,8 @@ function renderTabs() {
     else if (t.fav) fav.style.backgroundImage = `url("${t.fav}")`;
     const title = document.createElement("div");
     title.className = "title";
-    title.textContent = t.isNewTab ? "New Tab" : (t.loading ? "Yükleniyor…" : (t.title || "New Tab"));
+    title.textContent = t.isNewTab ? window.ARDA_I18N.get(settings.language, "newTab") :
+      (t.loading ? window.ARDA_I18N.get(settings.language, "loading") : (t.title || window.ARDA_I18N.get(settings.language, "newTab")));
     const close = document.createElement("button");
     close.className = "close";
     close.textContent = "✕";
@@ -187,7 +230,7 @@ const menu = $("#menupanel");
 $("#menu").onclick = (e) => { e.stopPropagation(); menu.classList.toggle("hidden"); };
 document.addEventListener("click", () => menu.classList.add("hidden"));
 menu.addEventListener("click", (e) => {
-  const act = e.target.dataset.act;
+  const act = e.target.closest(".menuitem")?.dataset.act;
   if (!act) return;
   menu.classList.add("hidden");
   if (act === "newtab") createTab();
@@ -208,24 +251,24 @@ function openPanel(kind) {
   const body = $("#panelbody");
   body.innerHTML = "";
   if (kind === "history") {
-    $("#paneltitle").textContent = "Geçmiş";
-    if (!history.length) body.innerHTML = '<div class="empty">Geçmiş boş.</div>';
+    $("#paneltitle").textContent = t("history");
+    if (!history.length) body.innerHTML = `<div class="empty">${t("historyEmpty")}</div>`;
     history.slice(0, 200).forEach((h) => body.appendChild(rowItem("🕘", h.title, h.url, () => go(h.url), () => {
       history = history.filter((x) => x !== h); store.set("history", history); openPanel("history");
     })));
-    addClear(body, "Geçmişi temizle", () => { history = []; store.set("history", history); openPanel("history"); });
+    addClear(body, t("clearHistory"), () => { history = []; store.set("history", history); openPanel("history"); });
   } else if (kind === "bookmarks") {
-    $("#paneltitle").textContent = "Yer imleri";
-    if (!bookmarks.length) body.innerHTML = '<div class="empty">Henüz yer imi yok.</div>';
+    $("#paneltitle").textContent = t("bookmarks");
+    if (!bookmarks.length) body.innerHTML = `<div class="empty">${t("bookmarksEmpty")}</div>`;
     bookmarks.forEach((b) => body.appendChild(rowItem("★", b.title, b.url, () => go(b.url), () => {
       bookmarks = bookmarks.filter((x) => x !== b); store.set("bookmarks", bookmarks); openPanel("bookmarks"); updateChrome();
     })));
   } else if (kind === "downloads") {
-    $("#paneltitle").textContent = "İndirilenler";
-    if (!downloads.length) body.innerHTML = '<div class="empty">İndirme yok.</div>';
+    $("#paneltitle").textContent = t("downloads");
+    if (!downloads.length) body.innerHTML = `<div class="empty">${t("downloadsEmpty")}</div>`;
     downloads.forEach((d) => body.appendChild(rowItem(d.state === "completed" ? "✅" : "⬇", d.filename, d.state === "completed" ? d.path : d.url, () => {})));
   } else if (kind === "settings") {
-    $("#paneltitle").textContent = "Ayarlar";
+    $("#paneltitle").textContent = t("settings");
     body.appendChild(settingsUI());
   }
 }
@@ -253,7 +296,7 @@ function settingsUI() {
   const wrap = document.createElement("div");
   wrap.innerHTML = `
     <div class="setting">
-      <label>Arama motoru</label>
+      <label>${t("searchEngine")}</label>
       <select id="setEngine">
         <option value="ddg">DuckDuckGo</option>
         <option value="google">Google</option>
@@ -261,11 +304,11 @@ function settingsUI() {
       </select>
     </div>
     <div class="setting">
-      <label>Reklam/izleyici engelleme (Shields)</label>
-      <select id="setShields"><option value="on">Açık</option><option value="off">Kapalı</option></select>
+      <label>${t("shieldsSetting")}</label>
+      <select id="setShields"><option value="on">${t("enabled")}</option><option value="off">${t("disabled")}</option></select>
     </div>
     <div class="setting">
-      <label>Engellenen toplam istek</label>
+      <label>${t("blockedTotal")}</label>
       <div style="font-size:22px;font-weight:700;color:var(--accent2)" id="setCount">0</div>
     </div>`;
   wrap.querySelector("#setEngine").value = settings.engine;
@@ -340,4 +383,5 @@ document.addEventListener("keydown", (e) => {
 });
 
 // ---------- Baslat ----------
+applyLanguage();
 createTab();

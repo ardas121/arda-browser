@@ -2,7 +2,7 @@
 <html lang="tr">
 <head>
   <meta charset="UTF-8" />
-  <title>New Tab</title>
+  <title>Arda Browser</title>
   <style>
     * { box-sizing: border-box; margin: 0; padding: 0; }
     body {
@@ -35,15 +35,17 @@
     a.tile:hover { background: #fff; border-color: #fb542b; box-shadow: 0 8px 20px rgba(20,20,40,.08); }
     a.tile .e { font-size: 26px; }
     .foot { position: fixed; bottom: 18px; color: #c2c6cc; font-size: 11px; }
+    html[dir="rtl"] input { border-right: 1px solid #e5e7eb; border-left: none; border-radius: 0 28px 28px 0; }
+    html[dir="rtl"] button { border-radius: 28px 0 0 28px; }
   </style>
 </head>
 <body>
   <div class="emblem">🧭</div>
   <div class="logo">ARDA<span>BROWSER</span></div>
-  <div class="sub">GİZLİLİĞİN KORUNDUĞU TARAYICI</div>
+  <div id="tagline" class="sub">GİZLİLİĞİN KORUNDUĞU TARAYICI</div>
   <form action="https://duckduckgo.com/">
-    <input name="q" placeholder="DuckDuckGo ile ara veya adres gir" autofocus />
-    <button type="submit">Ara</button>
+    <input id="searchInput" name="q" placeholder="DuckDuckGo ile ara veya adres gir" dir="auto" autofocus />
+    <button id="searchButton" type="submit">Ara</button>
   </form>
   <div class="links">
     <a class="tile" href="https://www.youtube.com"><span class="e">▶</span>YouTube</a>
@@ -53,6 +55,20 @@
     <a class="tile" href="https://twitter.com"><span class="e">𝕏</span>X</a>
     <a class="tile" href="https://www.reddit.com"><span class="e">👽</span>Reddit</a>
   </div>
-  <div class="foot">🛡 Reklam ve izleyici engelleme açık</div>
+  <div id="shieldFoot" class="foot">🛡 Reklam ve izleyici engelleme açık</div>
+  <script src="i18n.js"></script>
+  <script>
+    const requested = new URLSearchParams(location.search).get("lang") ||
+      (navigator.language || "en").split("-")[0].toLowerCase();
+    const lang = ARDA_I18N.supported.includes(requested) ? requested : "en";
+    const tr = (key) => ARDA_I18N.get(lang, key);
+    document.documentElement.lang = lang;
+    document.documentElement.dir = lang === "ar" ? "rtl" : "ltr";
+    document.title = tr("newTab");
+    document.getElementById("tagline").textContent = tr("privacyTagline");
+    document.getElementById("searchInput").placeholder = tr("duckSearch");
+    document.getElementById("searchButton").textContent = tr("search");
+    document.getElementById("shieldFoot").textContent = "🛡 " + tr("shieldFoot");
+  </script>
 </body>
 </html>

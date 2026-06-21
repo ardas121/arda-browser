@@ -87,6 +87,25 @@ button { font-family: inherit; cursor: pointer; }
   flex: 1; border: none; outline: none; background: transparent;
   color: var(--ink); font-size: 13.5px; user-select: text;
 }
+.language-select {
+  height: 34px;
+  max-width: 128px;
+  padding: 0 8px;
+  border: 1px solid var(--line);
+  border-radius: 9px;
+  background: var(--bar);
+  color: var(--ink);
+  font: 12px "Segoe UI", system-ui, sans-serif;
+  outline: none;
+  cursor: pointer;
+}
+.language-select:hover, .language-select:focus { border-color: var(--accent); }
+html[dir="rtl"] #sidepanel { right: auto; left: 0; border-left: none; border-right: 1px solid var(--line); }
+html[dir="rtl"] #menupanel { right: auto; left: 10px; }
+
+@media (max-width: 900px) {
+  .language-select { max-width: 48px; padding: 0 4px; }
+}
 
 /* Yer imleri cubugu */
 #bookmarksbar {
