@@ -1,7 +1,7 @@
 ARDA BROWSER
 ============
 
-Sürüm / Version: 1.0.10
+Sürüm / Version: 1.0.11
 Geliştirici / Developer: Arda
 
 TÜRKÇE
@@ -13,7 +13,8 @@ tarayıcısıdır. Electron ve Chromium altyapısıyla geliştirilmiştir.
 Özellikler:
 - Çoklu sekme ve gizli sekme desteği
 - Geliştirilmiş tam reklam, izleyici, açılır reklam ve sayfa içi reklam engelleme
-- Yer imleri, geçmiş ve indirme takibi
+- Yer imleri, geçmiş ve gerçek zamanlı indirme takibi
+- İndirme yüzdesi, boyut, hız, kalan süre, duraklatma ve iptal kontrolleri
 - DuckDuckGo, Google ve Bing arama seçenekleri
 - Sayfada bulma ve kullanışlı klavye kısayolları
 - Araç çubuğundan seçilebilen 12 arayüz dili

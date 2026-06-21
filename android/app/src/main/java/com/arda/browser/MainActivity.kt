@@ -18,6 +18,8 @@ import android.os.Environment
 import android.webkit.URLUtil
 import android.os.Bundle
 import android.os.Message
+import android.os.Handler
+import android.os.Looper
 import android.text.TextUtils
 import android.text.Editable
 import android.text.TextWatcher
@@ -805,6 +807,98 @@ class MainActivity : AppCompatActivity() {
             .show()
     }
 
+    private fun showRealDownloads() {
+        val saved = arr("downloads")
+        if (saved.length() == 0) {
+            AlertDialog.Builder(this).setTitle("İndirilenler")
+                .setMessage("Henüz indirme yok.").setPositiveButton("Tamam", null).show()
+            return
+        }
+        val dm = getSystemService(DOWNLOAD_SERVICE) as DownloadManager
+        val labels = ArrayList<String>()
+        repeat(saved.length()) { labels.add("") }
+        val adapter = ArrayAdapter(this, android.R.layout.simple_list_item_1, labels)
+        val handler = Handler(Looper.getMainLooper())
+        lateinit var dialog: AlertDialog
+        fun refresh(): Boolean {
+            var hasActive = false
+            for (i in 0 until saved.length()) {
+                val item = saved.getJSONObject(i)
+                val name = item.optString("name")
+                val id = item.optLong("id", -1)
+                var line = "Dosya bulunamadı"
+                if (id >= 0) {
+                    try {
+                        dm.query(DownloadManager.Query().setFilterById(id)).use { cursor ->
+                            if (cursor.moveToFirst()) {
+                                val state = cursor.getInt(cursor.getColumnIndexOrThrow(DownloadManager.COLUMN_STATUS))
+                                val received = cursor.getLong(cursor.getColumnIndexOrThrow(DownloadManager.COLUMN_BYTES_DOWNLOADED_SO_FAR)).coerceAtLeast(0)
+                                val total = cursor.getLong(cursor.getColumnIndexOrThrow(DownloadManager.COLUMN_TOTAL_SIZE_BYTES))
+                                val percent = if (total > 0) ((received * 100L) / total).coerceIn(0, 100) else -1
+                                val status = when (state) {
+                                    DownloadManager.STATUS_SUCCESSFUL -> "✓ Tamamlandı"
+                                    DownloadManager.STATUS_RUNNING -> { hasActive = true; "↓ İndiriliyor" }
+                                    DownloadManager.STATUS_PENDING -> { hasActive = true; "… Bekliyor" }
+                                    DownloadManager.STATUS_PAUSED -> { hasActive = true; "⏸ Duraklatıldı" }
+                                    DownloadManager.STATUS_FAILED -> "✕ Başarısız"
+                                    else -> "Bilinmiyor"
+                                }
+                                val size = if (total > 0) "${formatDownloadBytes(received)} / ${formatDownloadBytes(total)}" else formatDownloadBytes(received)
+                                line = if (percent >= 0) "$status  •  %$percent\n$size" else "$status\n$size"
+                            }
+                        }
+                    } catch (_: Exception) { line = "Durum okunamadı" }
+                }
+                labels[i] = "$name\n$line"
+            }
+            adapter.notifyDataSetChanged()
+            return hasActive
+        }
+        val ticker = object : Runnable {
+            override fun run() {
+                if (!dialog.isShowing) return
+                if (refresh()) handler.postDelayed(this, 750)
+            }
+        }
+        dialog = AlertDialog.Builder(this)
+            .setTitle("İndirilenler — gerçek zamanlı")
+            .setAdapter(adapter) { _, which ->
+                val id = saved.getJSONObject(which).optLong("id", -1)
+                if (id < 0) return@setAdapter
+                try {
+                    dm.query(DownloadManager.Query().setFilterById(id)).use { cursor ->
+                        if (!cursor.moveToFirst()) return@use
+                        val state = cursor.getInt(cursor.getColumnIndexOrThrow(DownloadManager.COLUMN_STATUS))
+                        if (state == DownloadManager.STATUS_SUCCESSFUL) {
+                            val uri = cursor.getString(cursor.getColumnIndexOrThrow(DownloadManager.COLUMN_LOCAL_URI))
+                            val mime = cursor.getString(cursor.getColumnIndexOrThrow(DownloadManager.COLUMN_MEDIA_TYPE)) ?: "*/*"
+                            startActivity(Intent(Intent.ACTION_VIEW).setDataAndType(Uri.parse(uri), mime).addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION))
+                        } else {
+                            AlertDialog.Builder(this).setMessage("Bu indirmeyi iptal etmek istiyor musun?")
+                                .setPositiveButton("İptal et") { _, _ -> dm.remove(id) }
+                                .setNegativeButton("Vazgeç", null).show()
+                        }
+                    }
+                } catch (_: Exception) { Toast.makeText(this, "Dosya açılamadı", Toast.LENGTH_SHORT).show() }
+            }
+            .setNegativeButton("Kapat", null)
+            .setNeutralButton("Listeyi temizle") { _, _ -> save("downloads", JSONArray()) }
+            .create()
+        dialog.setOnDismissListener { handler.removeCallbacks(ticker) }
+        refresh()
+        dialog.show()
+        handler.post(ticker)
+    }
+
+    private fun formatDownloadBytes(bytes: Long): String {
+        if (bytes < 1024) return "$bytes B"
+        val units = arrayOf("KB", "MB", "GB", "TB")
+        var value = bytes.toDouble() / 1024.0
+        var unit = 0
+        while (value >= 1024 && unit < units.lastIndex) { value /= 1024.0; unit++ }
+        return String.format(java.util.Locale.getDefault(), if (value >= 100) "%.0f %s" else "%.1f %s", value, units[unit])
+    }
+
     private fun showMenu(anchor: View) {
         val p = PopupMenu(this, anchor)
         p.menu.add(0, 1, 0, "＋  Yeni sekme")
@@ -832,7 +926,7 @@ class MainActivity : AppCompatActivity() {
                 7 -> shareUrl()
                 8 -> showSettings()
                 9 -> translatePage()
-                10 -> showDownloads()
+                10 -> showRealDownloads()
                 11 -> toggleDesktop()
                 12 -> addTab("https://duck.ai")
             }

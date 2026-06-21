@@ -22,6 +22,7 @@ if (!window.ARDA_I18N.supported.includes(settings.language)) settings.language =
 let bookmarks = store.get("bookmarks", []);
 let history = store.get("history", []);
 let downloads = [];
+let openPanelKind = null;
 
 const $ = (s) => document.querySelector(s);
 const views = $("#views");
@@ -417,8 +418,9 @@ const overlay = $("#overlay");
 const side = $("#sidepanel");
 $("#panelclose").onclick = closePanel;
 overlay.onclick = closePanel;
-function closePanel() { overlay.classList.add("hidden"); side.classList.add("hidden"); }
+function closePanel() { overlay.classList.add("hidden"); side.classList.add("hidden"); openPanelKind = null; }
 function openPanel(kind) {
+  openPanelKind = kind;
   overlay.classList.remove("hidden");
   side.classList.remove("hidden");
   const body = $("#panelbody");
@@ -440,10 +442,68 @@ function openPanel(kind) {
     $("#paneltitle").textContent = t("downloads");
     if (!downloads.length) body.innerHTML = `<div class="empty">${t("downloadsEmpty")}</div>`;
     downloads.forEach((d) => body.appendChild(rowItem(d.state === "completed" ? "✅" : "⬇", d.filename, d.state === "completed" ? d.path : d.url, () => {})));
+    body.innerHTML = "";
+    if (!downloads.length) body.innerHTML = `<div class="empty">${t("downloadsEmpty")}</div>`;
+    downloads.forEach((d) => body.appendChild(downloadItem(d)));
   } else if (kind === "settings") {
     $("#paneltitle").textContent = t("settings");
     body.appendChild(settingsUI());
   }
+}
+
+const DOWNLOAD_TEXT = {
+  tr: { downloading: "İndiriliyor", paused: "Duraklatıldı", completed: "Tamamlandı", cancelled: "İptal edildi", interrupted: "Kesintiye uğradı", pause: "Duraklat", resume: "Devam et", cancel: "İptal", open: "Aç", folder: "Klasörde göster", remaining: "kaldı" },
+  en: { downloading: "Downloading", paused: "Paused", completed: "Completed", cancelled: "Cancelled", interrupted: "Interrupted", pause: "Pause", resume: "Resume", cancel: "Cancel", open: "Open", folder: "Show in folder", remaining: "left" },
+  de: { downloading: "Wird heruntergeladen", paused: "Pausiert", completed: "Abgeschlossen", cancelled: "Abgebrochen", interrupted: "Unterbrochen", pause: "Pause", resume: "Fortsetzen", cancel: "Abbrechen", open: "Öffnen", folder: "Im Ordner zeigen", remaining: "verbleibend" },
+  fr: { downloading: "Téléchargement", paused: "En pause", completed: "Terminé", cancelled: "Annulé", interrupted: "Interrompu", pause: "Pause", resume: "Reprendre", cancel: "Annuler", open: "Ouvrir", folder: "Afficher dans le dossier", remaining: "restantes" },
+  es: { downloading: "Descargando", paused: "Pausado", completed: "Completado", cancelled: "Cancelado", interrupted: "Interrumpido", pause: "Pausar", resume: "Continuar", cancel: "Cancelar", open: "Abrir", folder: "Mostrar en carpeta", remaining: "restantes" }
+};
+function downloadText() { return DOWNLOAD_TEXT[settings.language] || DOWNLOAD_TEXT.en; }
+function formatBytes(value) {
+  const n = Number(value) || 0;
+  if (n < 1024) return `${n} B`;
+  const units = ["KB", "MB", "GB", "TB"];
+  let size = n / 1024; let unit = units[0];
+  for (let i = 1; size >= 1024 && i < units.length; i++) { size /= 1024; unit = units[i]; }
+  return `${size >= 100 ? size.toFixed(0) : size.toFixed(1)} ${unit}`;
+}
+function formatEta(seconds) {
+  if (!Number.isFinite(seconds) || seconds < 0) return "";
+  if (seconds < 60) return `${Math.ceil(seconds)} sn`;
+  if (seconds < 3600) return `${Math.ceil(seconds / 60)} dk`;
+  return `${Math.floor(seconds / 3600)} sa ${Math.ceil((seconds % 3600) / 60)} dk`;
+}
+function downloadItem(d) {
+  const tx = downloadText();
+  const total = Number(d.total) || 0;
+  const received = Number(d.received) || 0;
+  const percent = total > 0 ? Math.min(100, Math.max(0, received / total * 100)) : 0;
+  const active = d.state === "progress" || d.state === "interrupted";
+  const status = d.state === "completed" ? tx.completed : d.state === "cancelled" ? tx.cancelled : d.state === "interrupted" ? tx.interrupted : d.paused ? tx.paused : tx.downloading;
+  const eta = d.speed > 0 && total > received ? formatEta((total - received) / d.speed) : "";
+  const card = document.createElement("div");
+  card.className = `download-card ${d.state}`;
+  card.innerHTML = `
+    <div class="download-top"><div class="download-icon">${d.state === "completed" ? "✓" : "↓"}</div><div class="download-info"><div class="download-name"></div><div class="download-status"></div></div><strong class="download-percent">${total ? `${Math.round(percent)}%` : "…"}</strong></div>
+    <div class="download-track"><div class="download-fill${total ? "" : " indeterminate"}" style="width:${total ? percent : 100}%"></div></div>
+    <div class="download-details"></div><div class="download-actions"></div>`;
+  card.querySelector(".download-name").textContent = d.filename;
+  card.querySelector(".download-status").textContent = status;
+  const details = [`${formatBytes(received)}${total ? ` / ${formatBytes(total)}` : ""}`];
+  if (active && !d.paused && d.speed > 0) details.push(`${formatBytes(d.speed)}/sn`);
+  if (eta) details.push(`${eta} ${tx.remaining}`);
+  card.querySelector(".download-details").textContent = details.join("  •  ");
+  const actions = card.querySelector(".download-actions");
+  const addAction = (label, action, danger = false) => {
+    const button = document.createElement("button");
+    button.className = `download-action${danger ? " danger" : ""}`;
+    button.textContent = label;
+    button.onclick = () => window.arda.downloadAction(d.id, action);
+    actions.appendChild(button);
+  };
+  if (active) { addAction(d.paused ? tx.resume : tx.pause, d.paused ? "resume" : "pause"); addAction(tx.cancel, "cancel", true); }
+  if (d.state === "completed") { addAction(tx.open, "open"); addAction(tx.folder, "folder"); }
+  return card;
 }
 function rowItem(ico, t, u, onClick, onDel) {
   const row = document.createElement("div");
@@ -510,10 +570,15 @@ window.arda.onBlockedCount((n) => {
 window.arda.getShields().then((on) => setShields(on));
 
 // ---------- Indirilenler ----------
-window.arda.onDownloadStarted((d) => { downloads.unshift({ ...d, state: "progress" }); });
+function updateDownload(d) {
+  const i = downloads.findIndex((x) => x.id === d.id);
+  if (i >= 0) downloads[i] = { ...downloads[i], ...d }; else downloads.unshift(d);
+  if (openPanelKind === "downloads") openPanel("downloads");
+}
+window.arda.onDownloadStarted(updateDownload);
+window.arda.onDownloadProgress(updateDownload);
 window.arda.onDownloadDone((d) => {
-  const i = downloads.findIndex((x) => x.url === d.url && x.state === "progress");
-  if (i >= 0) downloads[i] = d; else downloads.unshift(d);
+  updateDownload(d);
 });
 
 // ---------- Yeni sekme istegi (target=_blank) ----------

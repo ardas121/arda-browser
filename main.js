@@ -1,4 +1,4 @@
-const { app, BrowserWindow, session, ipcMain, Menu, clipboard, net } = require("electron");
+const { app, BrowserWindow, session, ipcMain, Menu, clipboard, net, shell } = require("electron");
 const path = require("path");
 const fs = require("fs").promises;
 const { FiltersEngine, Request } = require("@ghostery/adblocker");
@@ -18,6 +18,13 @@ let mainWindow;
 let shieldsEnabled = true;
 let blockedCount = 0;
 let fullAdblockEngine = null;
+let downloadSequence = 0;
+const activeDownloads = new Map();
+const finishedDownloads = new Map();
+
+function sendDownload(channel, payload) {
+  if (mainWindow && !mainWindow.isDestroyed()) mainWindow.webContents.send(channel, payload);
+}
 
 const RESOURCE_TYPES = {
   mainFrame: "document", subFrame: "subdocument", stylesheet: "stylesheet",
@@ -160,12 +167,33 @@ function attachSession(ses) {
     }
   });
   ses.on("will-download", (event, item) => {
-    const info = { filename: item.getFilename(), url: item.getURL(), total: item.getTotalBytes() };
-    if (mainWindow && !mainWindow.isDestroyed())
-      mainWindow.webContents.send("download-started", info);
+    const id = `${Date.now()}-${++downloadSequence}`;
+    const startedAt = Date.now();
+    let lastSentAt = startedAt;
+    let lastBytes = 0;
+    const baseInfo = () => ({
+      id, filename: item.getFilename(), url: item.getURL(),
+      total: item.getTotalBytes(), received: item.getReceivedBytes(),
+      path: item.getSavePath(), paused: item.isPaused()
+    });
+    activeDownloads.set(id, item);
+    sendDownload("download-started", { ...baseInfo(), state: "progress", startedAt });
+    item.on("updated", (_e, state) => {
+      const now = Date.now();
+      if (now - lastSentAt < 200 && state === "progressing") return;
+      const received = item.getReceivedBytes();
+      const speed = Math.max(0, (received - lastBytes) / Math.max((now - lastSentAt) / 1000, 0.001));
+      lastSentAt = now;
+      lastBytes = received;
+      sendDownload("download-progress", {
+        ...baseInfo(), state: state === "interrupted" ? "interrupted" : "progress", speed
+      });
+    });
     item.on("done", (e, state) => {
-      if (mainWindow && !mainWindow.isDestroyed())
-        mainWindow.webContents.send("download-done", { ...info, state, path: item.getSavePath() });
+      const info = { ...baseInfo(), state, speed: 0 };
+      activeDownloads.delete(id);
+      finishedDownloads.set(id, info);
+      sendDownload("download-done", info);
     });
   });
 }
@@ -273,6 +301,23 @@ app.whenReady().then(() => {
     return shieldsEnabled;
   });
   ipcMain.handle("get-shields", () => shieldsEnabled);
+  ipcMain.handle("download-action", async (_event, id, action) => {
+    const item = activeDownloads.get(String(id));
+    const finished = finishedDownloads.get(String(id));
+    if (action === "pause" && item && !item.isPaused()) {
+      item.pause();
+      sendDownload("download-progress", { id: String(id), paused: true, state: "progress", received: item.getReceivedBytes(), total: item.getTotalBytes(), speed: 0 });
+    } else if (action === "resume" && item && item.isPaused()) {
+      item.resume();
+      sendDownload("download-progress", { id: String(id), paused: false, state: "progress", received: item.getReceivedBytes(), total: item.getTotalBytes(), speed: 0 });
+    }
+    else if (action === "cancel" && item) item.cancel();
+    else if (action === "open" && finished?.path) return shell.openPath(finished.path);
+    else if (action === "folder" && (finished?.path || item?.getSavePath())) {
+      shell.showItemInFolder(finished?.path || item.getSavePath());
+    }
+    return true;
+  });
   ipcMain.handle("get-search-suggestions", async (_event, rawQuery) => {
     const query = String(rawQuery || "").trim().slice(0, 200);
     if (!query) return [];
