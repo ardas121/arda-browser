@@ -26,7 +26,12 @@ const $ = (s) => document.querySelector(s);
 const views = $("#views");
 const tabsEl = $("#tabs");
 const addr = $("#address");
+const suggestionsEl = $("#addressSuggestions");
 const languageSelect = $("#languageSelect");
+let suggestions = [];
+let suggestionIndex = -1;
+let suggestionTimer = null;
+let suggestionRequest = 0;
 
 function t(key) {
   return window.ARDA_I18N.get(settings.language, key);
@@ -74,6 +79,90 @@ function normalize(text) {
   if (/^localhost(:\d+)?(\/.*)?$/i.test(text)) return "http://" + text;
   if (/^[^\s.]+\.[^\s]{2,}(\/.*)?$/.test(text)) return "https://" + text;
   return searchUrl(text);
+}
+
+function faviconFor(rawUrl, search = false) {
+  if (search) {
+    const domain = settings.engine === "google" ? "google.com" : settings.engine === "bing" ? "bing.com" : "duckduckgo.com";
+    return `https://www.google.com/s2/favicons?sz=64&domain=${domain}`;
+  }
+  try {
+    const domain = new URL(rawUrl).hostname;
+    return `https://www.google.com/s2/favicons?sz=64&domain=${encodeURIComponent(domain)}`;
+  } catch { return ""; }
+}
+
+function hideSuggestions() {
+  suggestionsEl.classList.add("hidden");
+  suggestionsEl.innerHTML = "";
+  suggestions = [];
+  suggestionIndex = -1;
+}
+
+function chooseSuggestion(item) {
+  if (!item) return;
+  addr.value = item.input;
+  const url = item.url || normalize(item.input);
+  hideSuggestions();
+  if (url) go(url);
+  addr.blur();
+}
+
+function renderSuggestions(items) {
+  suggestions = items;
+  suggestionIndex = -1;
+  suggestionsEl.innerHTML = "";
+  if (!items.length || document.activeElement !== addr) { hideSuggestions(); return; }
+  items.forEach((item, index) => {
+    const row = document.createElement("div");
+    row.className = "suggestion";
+    row.setAttribute("role", "option");
+    const icon = document.createElement("img");
+    icon.alt = "";
+    icon.src = item.icon || faviconFor(item.url, item.kind === "search");
+    const meta = document.createElement("div");
+    meta.className = "suggest-main";
+    const title = document.createElement("div");
+    title.className = "suggest-title";
+    title.textContent = item.title;
+    const detail = document.createElement("div");
+    detail.className = "suggest-url";
+    detail.textContent = item.kind === "search" ? `${settings.engine.toUpperCase()} ile ara` : item.url;
+    meta.append(title, detail);
+    row.append(icon, meta);
+    row.addEventListener("mousedown", (event) => { event.preventDefault(); chooseSuggestion(item); });
+    suggestionsEl.appendChild(row);
+  });
+  suggestionsEl.classList.remove("hidden");
+}
+
+async function updateSuggestions() {
+  const query = addr.value.trim();
+  const request = ++suggestionRequest;
+  if (!query) { hideSuggestions(); return; }
+  const q = query.toLocaleLowerCase();
+  const seen = new Set();
+  const items = [];
+  const addPage = (entry) => {
+    const url = entry.url || entry.u || "";
+    const title = entry.title || entry.t || url;
+    if (!url || seen.has(url) || !(url.toLocaleLowerCase().includes(q) || title.toLocaleLowerCase().includes(q))) return;
+    seen.add(url);
+    items.push({ kind: "page", title, url, input: url, icon: faviconFor(url) });
+  };
+  bookmarks.forEach(addPage);
+  history.forEach(addPage);
+  const remote = await window.arda.getSearchSuggestions(query).catch(() => []);
+  if (request !== suggestionRequest || document.activeElement !== addr) return;
+  const phrases = [query, ...(Array.isArray(remote) ? remote : [])];
+  for (const phrase of phrases) {
+    const text = String(phrase || "").trim();
+    const key = "search:" + text.toLocaleLowerCase();
+    if (!text || seen.has(key)) continue;
+    seen.add(key);
+    items.push({ kind: "search", title: text, input: text, url: searchUrl(text), icon: faviconFor("", true) });
+  }
+  renderSuggestions(items.slice(0, 9));
 }
 function newtabUrl() {
   return "file://" + location.pathname.replace(/index\.html$/, NEWTAB) +
@@ -145,7 +234,10 @@ function switchTab(id) {
 function closeTab(id) {
   const idx = tabs.findIndex((t) => t.id === id);
   if (idx === -1) return;
-  const el = tabsEl.children[idx];
+  const closingTab = tabs[idx];
+  if (closingTab.closing) return;
+  closingTab.closing = true;
+  renderTabs();
   const finish = () => {
     const i = tabs.findIndex((t) => t.id === id);
     if (i === -1) return;
@@ -158,15 +250,14 @@ function closeTab(id) {
     renderTabs();
     saveSession();
   };
-  if (el) { el.classList.add("closing"); setTimeout(finish, 150); }
-  else finish();
+  setTimeout(finish, 150);
 }
 
 function renderTabs() {
   tabsEl.innerHTML = "";
   tabs.forEach((t) => {
     const el = document.createElement("div");
-    el.className = "tab" + (t.id === activeId ? " active" : "") + (t.priv ? " private" : "");
+    el.className = "tab" + (t.id === activeId ? " active" : "") + (t.priv ? " private" : "") + (t.closing ? " closing" : "");
     if (t.justOpened) { el.classList.add("opening"); t.justOpened = false; }
     const fav = document.createElement("div");
     fav.className = "favicon";
@@ -181,7 +272,7 @@ function renderTabs() {
     close.textContent = "✕";
     close.onclick = (ev) => { ev.stopPropagation(); closeTab(t.id); };
     el.append(fav, title, close);
-    el.onclick = () => switchTab(t.id);
+    el.onclick = () => { if (!t.closing) switchTab(t.id); };
     tabsEl.appendChild(el);
   });
 }
@@ -210,13 +301,33 @@ function go(url) {
 
 // ---------- Olaylar: arac cubugu ----------
 addr.addEventListener("keydown", (e) => {
+  if (e.key === "ArrowDown" && suggestions.length) {
+    e.preventDefault();
+    suggestionIndex = (suggestionIndex + 1) % suggestions.length;
+    [...suggestionsEl.children].forEach((el, i) => el.classList.toggle("selected", i === suggestionIndex));
+    return;
+  }
+  if (e.key === "ArrowUp" && suggestions.length) {
+    e.preventDefault();
+    suggestionIndex = (suggestionIndex - 1 + suggestions.length) % suggestions.length;
+    [...suggestionsEl.children].forEach((el, i) => el.classList.toggle("selected", i === suggestionIndex));
+    return;
+  }
+  if (e.key === "Escape") { hideSuggestions(); return; }
   if (e.key === "Enter") {
+    if (suggestionIndex >= 0) { e.preventDefault(); chooseSuggestion(suggestions[suggestionIndex]); return; }
     const u = normalize(addr.value);
     if (u) go(u);
+    hideSuggestions();
     addr.blur();
   }
 });
-addr.addEventListener("focus", () => addr.select());
+addr.addEventListener("input", () => {
+  clearTimeout(suggestionTimer);
+  suggestionTimer = setTimeout(updateSuggestions, 160);
+});
+addr.addEventListener("focus", () => { addr.select(); if (addr.value.trim()) updateSuggestions(); });
+addr.addEventListener("blur", () => setTimeout(hideSuggestions, 120));
 $("#back").onclick = () => { const t = activeTab(); try { t.wv.goBack(); } catch {} };
 $("#forward").onclick = () => { const t = activeTab(); try { t.wv.goForward(); } catch {} };
 $("#reload").onclick = () => { const t = activeTab(); if (t.loading) t.wv.stop(); else t.wv.reload(); };

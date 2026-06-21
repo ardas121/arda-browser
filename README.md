@@ -5,7 +5,7 @@ Chromium üzerine geliştirilmiş ücretsiz bir Windows tarayıcısıdır.
 
 [⬇️ Windows kurulumunu indir](../../releases/latest/download/Arda-Browser-Setup.exe)
 
-[📱 Android APK'yı indir](../../releases/latest/download/Arda-Browser-Android-v1.0.1.apk)
+[📱 Android APK'yı indir](../../releases/latest/download/Arda-Browser-Android-v1.0.7.apk)
 
 ## Özellikler
 

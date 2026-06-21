@@ -1,4 +1,4 @@
-const { app, BrowserWindow, session, ipcMain } = require("electron");
+const { app, BrowserWindow, session, ipcMain, Menu, clipboard, net } = require("electron");
 const path = require("path");
 
 // Eski/sabit bir Chrome surumu Google oturum acma sayfalarinda
@@ -112,6 +112,56 @@ function attachSession(ses) {
   });
 }
 
+function attachContextMenu(contents) {
+  if (contents.__ardaContextMenu) return;
+  contents.__ardaContextMenu = true;
+  contents.on("context-menu", (_event, params) => {
+    const edit = params.editFlags || {};
+    const template = [];
+    if (params.isEditable) {
+      template.push(
+        { label: "Geri al", enabled: !!edit.canUndo, click: () => contents.undo() },
+        { label: "Yinele", enabled: !!edit.canRedo, click: () => contents.redo() },
+        { type: "separator" },
+        { label: "Kes", enabled: !!edit.canCut, click: () => contents.cut() },
+        { label: "Kopyala", enabled: !!edit.canCopy, click: () => contents.copy() },
+        { label: "Yapıştır", enabled: !!edit.canPaste, click: () => contents.paste() },
+        { label: "Tümünü seç", click: () => contents.selectAll() }
+      );
+    } else if (params.selectionText) {
+      template.push({ label: "Kopyala", click: () => clipboard.writeText(params.selectionText) });
+    }
+    if (params.linkURL) {
+      if (template.length) template.push({ type: "separator" });
+      template.push(
+        { label: "Bağlantıyı yeni sekmede aç", click: () => mainWindow?.webContents.send("open-new-tab", params.linkURL) },
+        { label: "Bağlantıyı kopyala", click: () => clipboard.writeText(params.linkURL) },
+        { label: "Bağlantıyı indir", click: () => contents.downloadURL(params.linkURL) }
+      );
+    }
+    if (params.srcURL && params.mediaType === "image") {
+      if (template.length) template.push({ type: "separator" });
+      template.push(
+        { label: "Resmi orijinal boyutta indir", click: () => contents.downloadURL(params.srcURL) },
+        { label: "Resim adresini kopyala", click: () => clipboard.writeText(params.srcURL) }
+      );
+    } else if (params.srcURL && ["video", "audio"].includes(params.mediaType)) {
+      if (template.length) template.push({ type: "separator" });
+      template.push({ label: "Medyayı indir", click: () => contents.downloadURL(params.srcURL) });
+    }
+    if (!params.isEditable && !params.linkURL && !params.srcURL) {
+      if (template.length) template.push({ type: "separator" });
+      template.push(
+        { label: "Geri", enabled: contents.canGoBack(), click: () => contents.goBack() },
+        { label: "İleri", enabled: contents.canGoForward(), click: () => contents.goForward() },
+        { label: "Yenile", click: () => contents.reload() }
+      );
+    }
+    if (!template.length) return;
+    Menu.buildFromTemplate(template).popup({ window: mainWindow });
+  });
+}
+
 function createWindow() {
   mainWindow = new BrowserWindow({
     width: 1280,
@@ -130,6 +180,7 @@ function createWindow() {
     }
   });
   mainWindow.loadFile(path.join(__dirname, "renderer", "index.html"));
+  attachContextMenu(mainWindow.webContents);
 }
 
 app.whenReady().then(() => {
@@ -141,6 +192,7 @@ app.whenReady().then(() => {
     if (contents.getType() === "webview") {
       // Ilk ag isteginden itibaren guncel Chrome kimligi kullanilsin.
       contents.setUserAgent(CHROME_UA);
+      attachContextMenu(contents);
       contents.setWindowOpenHandler(({ url }) => {
         if (mainWindow && !mainWindow.isDestroyed())
           mainWindow.webContents.send("open-new-tab", url);
@@ -154,6 +206,27 @@ app.whenReady().then(() => {
     return shieldsEnabled;
   });
   ipcMain.handle("get-shields", () => shieldsEnabled);
+  ipcMain.handle("get-search-suggestions", async (_event, rawQuery) => {
+    const query = String(rawQuery || "").trim().slice(0, 200);
+    if (!query) return [];
+    const controller = new AbortController();
+    const timer = setTimeout(() => controller.abort(), 2500);
+    try {
+      const response = await net.fetch(`https://duckduckgo.com/ac/?q=${encodeURIComponent(query)}&type=list`, {
+        signal: controller.signal,
+        headers: { Accept: "application/json" }
+      });
+      if (!response.ok) return [];
+      const data = await response.json();
+      if (Array.isArray(data?.[1])) return data[1].filter((x) => typeof x === "string").slice(0, 7);
+      if (Array.isArray(data)) return data.map((x) => x?.phrase).filter(Boolean).slice(0, 7);
+      return [];
+    } catch {
+      return [];
+    } finally {
+      clearTimeout(timer);
+    }
+  });
 
   createWindow();
   app.on("activate", () => {

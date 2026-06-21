@@ -1,7 +1,7 @@
 ARDA BROWSER
 ============
 
-Sürüm / Version: 1.0.5
+Sürüm / Version: 1.0.7
 Geliştirici / Developer: Arda
 
 TÜRKÇE
