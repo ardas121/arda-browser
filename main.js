@@ -1,5 +1,7 @@
 const { app, BrowserWindow, session, ipcMain, Menu, clipboard, net } = require("electron");
 const path = require("path");
+const fs = require("fs").promises;
+const { FiltersEngine, Request } = require("@ghostery/adblocker");
 
 // Eski/sabit bir Chrome surumu Google oturum acma sayfalarinda
 // "bu tarayici guvenli olmayabilir" hatasina yol acabiliyor. Electron'un
@@ -15,6 +17,40 @@ app.userAgentFallback = CHROME_UA;
 let mainWindow;
 let shieldsEnabled = true;
 let blockedCount = 0;
+let fullAdblockEngine = null;
+
+const RESOURCE_TYPES = {
+  mainFrame: "document", subFrame: "subdocument", stylesheet: "stylesheet",
+  script: "script", image: "image", font: "font", object: "object",
+  xhr: "xhr", ping: "ping", media: "media", webSocket: "websocket"
+};
+
+async function initFullAdblock() {
+  const fetcher = (url, init) => net.fetch(url, init);
+  const cache = {
+    path: path.join(app.getPath("userData"), "arda-adblock-engine.bin"),
+    read: fs.readFile,
+    write: fs.writeFile
+  };
+  try {
+    fullAdblockEngine = await FiltersEngine.fromPrebuiltAdsAndTracking(fetcher, cache);
+  } catch {
+    try { fullAdblockEngine = await FiltersEngine.fromPrebuiltAdsAndTracking(fetcher); } catch {}
+  }
+}
+
+function matchesFullAdblock(details) {
+  if (!fullAdblockEngine || details.resourceType === "mainFrame") return false;
+  try {
+    const request = Request.fromRawDetails({
+      type: RESOURCE_TYPES[details.resourceType] || "other",
+      url: details.url,
+      sourceUrl: details.referrer || details.initiator || ""
+    });
+    const result = fullAdblockEngine.match(request);
+    return !!result.match && !result.exception;
+  } catch { return false; }
+}
 
 // Windows gorev cubugunda uygulamanin kendi ikonunun kullanilmasini saglar.
 if (process.platform === "win32") app.setAppUserModelId("com.arda.browser");
@@ -48,17 +84,39 @@ const BLOCKLIST = [
   "ads.yahoo.com", "analytics.yahoo.com", "an.yandex.ru", "adfox.ru", "adcolony.com", "applovin.com",
   "vungle.com", "inmobi.com", "mopub.com", "chartboost.com", "flurry.com", "smaato.net", "fyber.com",
   "adcash.com", "propellerads.com", "popads.net", "popcash.net", "exoclick.com", "juicyads.com",
-  "plugrush.com", "adsterra.com", "hilltopads.net", "clickadu.com", "trafficstars.com"
+  "plugrush.com", "adsterra.com", "hilltopads.net", "clickadu.com", "trafficstars.com",
+  "monetag.com", "onclicka.com", "onclickalgo.com", "admaven.com", "ad-maven.com",
+  "richads.com", "pushground.com", "clickaine.com", "zeropark.com", "popunder.net",
+  "trafficjunky.com", "ero-advertising.com", "adnium.com", "adxxx.com", "twinrdack.com"
 ];
 
-function isBlocked(url) {
+const AD_URL_PATTERN = /(?:^|[./?&=_-])(ads?|adserver|advert(?:ising|isement)?|banner|popunder|popup|sponsor(?:ed)?|promo(?:tion)?|prebid|bidder|tracking|pixel)(?:[./?&=_-]|$)/i;
+const COSMETIC_AD_CSS = `
+  .adsbygoogle, [id^="google_ads"], [id^="ad-slot"], [id^="ad_slot"],
+  [class~="advertisement"], [class~="ad-banner"], [class~="ad-container"],
+  [class~="ad-wrapper"], [class~="sponsored"], [data-ad-slot], [data-ad-client],
+  iframe[src*="doubleclick"], iframe[src*="googlesyndication"], iframe[src*="adserver"] {
+    display: none !important; visibility: hidden !important; width: 0 !important; height: 0 !important;
+  }
+`;
+
+function isBlocked(url, details = {}) {
   try {
     const u = new URL(url);
     const host = u.hostname;
-    return BLOCKLIST.some((d) => {
+    const listed = BLOCKLIST.some((d) => {
       if (d.includes("/")) return (host + u.pathname).includes(d);
       return host === d || host.endsWith("." + d);
     });
+    if (listed) return true;
+    if (details.resourceType === "mainFrame") return false;
+    const source = details.referrer || details.initiator || "";
+    let thirdParty = true;
+    try {
+      const sourceHost = new URL(source).hostname;
+      thirdParty = sourceHost !== host && !sourceHost.endsWith("." + host) && !host.endsWith("." + sourceHost);
+    } catch {}
+    return thirdParty && AD_URL_PATTERN.test(host + u.pathname + u.search);
   } catch {
     return false;
   }
@@ -93,7 +151,7 @@ function attachSession(ses) {
     cb({ requestHeaders });
   });
   ses.webRequest.onBeforeRequest({ urls: ["*://*/*"] }, (details, cb) => {
-    if (shieldsEnabled && isBlocked(details.url)) {
+    if (shieldsEnabled && (isBlocked(details.url, details) || matchesFullAdblock(details))) {
       blockedCount++;
       sendCount();
       cb({ cancel: true });
@@ -186,6 +244,7 @@ function createWindow() {
 app.whenReady().then(() => {
   attachSession(session.defaultSession);
   attachSession(session.fromPartition("incognito"));
+  initFullAdblock();
 
   // Webview icinde target=_blank / window.open -> yeni sekme olarak ac
   app.on("web-contents-created", (e, contents) => {
@@ -193,7 +252,15 @@ app.whenReady().then(() => {
       // Ilk ag isteginden itibaren guncel Chrome kimligi kullanilsin.
       contents.setUserAgent(CHROME_UA);
       attachContextMenu(contents);
+      contents.on("did-finish-load", () => {
+        if (shieldsEnabled) contents.insertCSS(COSMETIC_AD_CSS).catch(() => {});
+      });
       contents.setWindowOpenHandler(({ url }) => {
+        if (shieldsEnabled && isBlocked(url, { resourceType: "subFrame" })) {
+          blockedCount++;
+          sendCount();
+          return { action: "deny" };
+        }
         if (mainWindow && !mainWindow.isDestroyed())
           mainWindow.webContents.send("open-new-tab", url);
         return { action: "deny" };

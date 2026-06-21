@@ -264,6 +264,7 @@ function renderTabs() {
     if (t.justOpened) { el.classList.add("opening"); t.justOpened = false; }
     el.draggable = !t.closing;
     el.addEventListener("dragstart", (event) => {
+      if (event.target.closest?.(".close")) { event.preventDefault(); return; }
       draggedTabId = t.id;
       el.classList.add("dragging");
       event.dataTransfer.effectAllowed = "move";
@@ -295,7 +296,13 @@ function renderTabs() {
     const close = document.createElement("button");
     close.className = "close";
     close.textContent = "✕";
-    close.onclick = (ev) => { ev.stopPropagation(); closeTab(t.id); };
+    close.draggable = false;
+    close.addEventListener("pointerdown", (ev) => {
+      ev.preventDefault();
+      ev.stopPropagation();
+      closeTab(t.id);
+    });
+    close.addEventListener("click", (ev) => { ev.preventDefault(); ev.stopPropagation(); });
     el.append(fav, title, close);
     el.onclick = () => { if (!t.closing) switchTab(t.id); };
     tabsEl.appendChild(el);

@@ -5,13 +5,13 @@ Chromium üzerine geliştirilmiş ücretsiz bir Windows tarayıcısıdır.
 
 [⬇️ Windows kurulumunu indir](../../releases/latest/download/Arda-Browser-Setup.exe)
 
-[📱 Android APK'yı indir](../../releases/latest/download/Arda-Browser-Android-v1.0.8.apk)
+[📱 Android APK'yı indir](https://github.com/ardas121/arda-browser/releases/download/v1.0.10/Arda-Browser-Android-v1.0.10.apk)
 
 ## Özellikler
 
 - 🗂️ Çoklu sekme desteği
 - 🔎 Adres çubuğundan arama yapma
-- 🛡️ Yerleşik reklam ve izleyici engelleyici
+- 🛡️ Geliştirilmiş tam reklam, izleyici, açılır reklam ve sayfa içi reklam engelleme
 - 🕶️ Ayrı oturum kullanan gizli sekmeler
 - ⭐ Yer imleri ve yer imi çubuğu
 - 🕘 Geçmişi görüntüleme ve temizleme
@@ -94,11 +94,9 @@ Oluşturulan kurulum dosyası `dist/Arda-Browser-Setup.exe` yolunda bulunur.
 
 ## Lisans
 
-**Tüm hakları saklıdır (All Rights Reserved).** Bu yazılım ve kaynak kodu **Arda Browser**'ın münhasır mülküdür ve özel/sahipli (proprietary) bir lisansla sunulur.
+Copyright © 2026 Arda Browser. All Rights Reserved.
 
-Yazılım yalnızca **kişisel kullanım** için indirilip kullanılabilir. Kaynak kodun kopyalanması, değiştirilmesi, yeniden dağıtılması, tersine mühendisliği, alt lisanslanması, ticari kullanımı veya dağıtımı, telif hakkı sahibinin önceden yazılı izni olmadan kesinlikle yasaktır.
-
-Ayrıntılar için [LICENSE](LICENSE) dosyasına bakın.
+Bu yazılım yalnızca kişisel kullanım için indirilebilir ve kullanılabilir. Kaynak kodun yazılı izin olmadan kopyalanması, değiştirilmesi, yeniden dağıtılması, tersine mühendisliği, alt lisanslanması veya ticari kullanımı yasaktır. Ayrıntılar için [LICENSE](LICENSE) dosyasına bakın.
 
 ---
 

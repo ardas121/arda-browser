@@ -120,7 +120,10 @@ class MainActivity : AppCompatActivity() {
         "mopub.com", "chartboost.com", "startappservice.com", "flurry.com", "supersonicads.com",
         "tapjoy.com", "smaato.net", "mobfox.com", "fyber.com",
         "adcash.com", "propellerads.com", "popads.net", "popcash.net", "exoclick.com", "juicyads.com",
-        "plugrush.com", "adsterra.com", "hilltopads.net", "clickadu.com", "trafficstars.com"
+        "plugrush.com", "adsterra.com", "hilltopads.net", "clickadu.com", "trafficstars.com",
+        "monetag.com", "onclicka.com", "onclickalgo.com", "admaven.com", "ad-maven.com",
+        "richads.com", "pushground.com", "clickaine.com", "zeropark.com", "popunder.net",
+        "trafficjunky.com", "ero-advertising.com", "adnium.com", "adxxx.com", "twinrdack.com"
     )
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -263,7 +266,7 @@ class MainActivity : AppCompatActivity() {
             override fun shouldInterceptRequest(view: WebView?, request: WebResourceRequest?): WebResourceResponse? {
                 val req = request ?: return null
                 val u = req.url?.toString() ?: return null
-                if (shieldsOn && !req.isForMainFrame && isBlocked(u)) {
+                if (shieldsOn && !req.isForMainFrame && isBlocked(u, view?.url)) {
                     blocked++
                     runOnUiThread { updateShieldsLabel() }
                     return WebResourceResponse("text/plain", "utf-8", ByteArrayInputStream(ByteArray(0)))
@@ -320,6 +323,7 @@ class MainActivity : AppCompatActivity() {
                 if (!title.isNullOrBlank()) { t.title = title; refreshSwitcherIfOpen() }
             }
             override fun onCreateWindow(view: WebView?, isDialog: Boolean, isUserGesture: Boolean, resultMsg: Message?): Boolean {
+                if (!isUserGesture) return false
                 val newTab = addTab(null, current?.priv ?: false, loadHome = false)
                 val transport = resultMsg?.obj as? WebView.WebViewTransport
                 transport?.webView = newTab.web
@@ -465,10 +469,15 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
-    private fun isBlocked(url: String): Boolean {
+    private fun isBlocked(url: String, sourceUrl: String? = null): Boolean {
         return try {
-            val host = URI(url).host ?: return false
-            BLOCKLIST.any { host == it || host.endsWith(".$it") }
+            val uri = URI(url)
+            val host = uri.host ?: return false
+            if (BLOCKLIST.any { host == it || host.endsWith(".$it") }) return true
+            val sourceHost = try { URI(sourceUrl ?: "").host } catch (e: Exception) { null }
+            val thirdParty = sourceHost == null || (sourceHost != host && !sourceHost.endsWith(".$host") && !host.endsWith(".$sourceHost"))
+            val target = host + (uri.rawPath ?: "") + (uri.rawQuery ?: "")
+            thirdParty && Regex("(^|[./?&=_-])(ads?|adserver|advert|banner|popunder|popup|sponsored|prebid|tracking|pixel)([./?&=_-]|$)", RegexOption.IGNORE_CASE).containsMatchIn(target)
         } catch (e: Exception) { false }
     }
 
