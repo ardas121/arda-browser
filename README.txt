@@ -1,7 +1,7 @@
 ARDA BROWSER
 ============
 
-Sürüm / Version: 1.0.8
+Sürüm / Version: 1.0.9
 Geliştirici / Developer: Arda
 
 TÜRKÇE
@@ -42,7 +42,7 @@ Arda Browser is a free Windows browser designed to provide a clean,
 fast and privacy-focused browsing experience. It is built with Electron
 and Chromium.
 
-License / Lisans: GNU GPL v3.0 (GPL-3.0-only)
+License / Lisans: Proprietary - All Rights Reserved
 
 Features:
 - Multiple tabs and private tabs

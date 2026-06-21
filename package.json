@@ -1,6 +1,6 @@
 {
   "name": "arda-browser",
-  "version": "1.0.8",
+  "version": "1.0.9",
   "description": "Arda Browser - Brave benzeri, reklam/izleyici engelleyici tarayici",
   "main": "main.js",
   "scripts": {
@@ -9,7 +9,7 @@
     "dist:dir": "electron-builder --win dir"
   },
   "author": "Arda",
-  "license": "GPL-3.0-only",
+  "license": "UNLICENSED",
   "devDependencies": {
     "electron": "^42.4.1",
     "electron-builder": "^26.0.12"
