@@ -3,7 +3,9 @@
 **Arda Browser**, hızlı ve sade bir internet deneyimi sunmak için Electron ve
 Chromium üzerine geliştirilmiş ücretsiz bir Windows tarayıcısıdır.
 
-[⬇️ Arda Browser'ı indir](../../releases/latest/download/Arda-Browser-Setup.exe)
+[⬇️ Windows kurulumunu indir](../../releases/latest/download/Arda-Browser-Setup.exe)
+
+[📱 Android APK'yı indir](../../releases/latest/download/Arda-Browser-Android-v1.0.1.apk)
 
 ## Özellikler
 
