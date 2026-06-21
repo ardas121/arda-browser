@@ -100,7 +100,7 @@ function createTab(url, opts = {}) {
   wv.src = url || newtabUrl();
   views.appendChild(wv);
 
-  const tab = { id, wv, title: t("newTab"), url: url || "", isNewTab: !url, priv: !!opts.priv, loading: false, fav: "" };
+  const tab = { id, wv, title: t("newTab"), url: url || "", isNewTab: !url, priv: !!opts.priv, loading: false, fav: "", justOpened: true };
   tabs.push(tab);
 
   wv.addEventListener("page-title-updated", (e) => { tab.title = e.title; renderTabs(); });
@@ -129,6 +129,7 @@ function onNavigate(tab, url) {
     history = history.slice(0, 500);
     store.set("history", history);
   }
+  saveSession();
 }
 
 function activeTab() { return tabs.find((t) => t.id === activeId); }
@@ -138,18 +139,27 @@ function switchTab(id) {
   tabs.forEach((t) => t.wv.classList.toggle("active", t.id === id));
   renderTabs();
   updateChrome();
+  saveSession();
 }
 
 function closeTab(id) {
-  const i = tabs.findIndex((t) => t.id === id);
-  if (i === -1) return;
-  tabs[i].wv.remove();
-  tabs.splice(i, 1);
-  if (activeId === id) {
-    if (tabs.length === 0) { createTab(); return; }
-    switchTab(tabs[Math.max(0, i - 1)].id);
-  }
-  renderTabs();
+  const idx = tabs.findIndex((t) => t.id === id);
+  if (idx === -1) return;
+  const el = tabsEl.children[idx];
+  const finish = () => {
+    const i = tabs.findIndex((t) => t.id === id);
+    if (i === -1) return;
+    tabs[i].wv.remove();
+    tabs.splice(i, 1);
+    if (activeId === id) {
+      if (tabs.length === 0) { createTab(); return; }
+      switchTab(tabs[Math.max(0, i - 1)].id);
+    }
+    renderTabs();
+    saveSession();
+  };
+  if (el) { el.classList.add("closing"); setTimeout(finish, 150); }
+  else finish();
 }
 
 function renderTabs() {
@@ -157,6 +167,7 @@ function renderTabs() {
   tabs.forEach((t) => {
     const el = document.createElement("div");
     el.className = "tab" + (t.id === activeId ? " active" : "") + (t.priv ? " private" : "");
+    if (t.justOpened) { el.classList.add("opening"); t.justOpened = false; }
     const fav = document.createElement("div");
     fav.className = "favicon";
     if (t.priv) fav.textContent = "🕶";
@@ -393,6 +404,22 @@ document.addEventListener("keydown", (e) => {
   else if (e.key === "F5") { e.preventDefault(); activeTab().wv.reload(); }
 });
 
+// ---------- Oturum (sekmeleri hatirla) ----------
+function saveSession() {
+  const visible = tabs.filter((t) => !t.priv);
+  const open = visible.map((t) =>
+    (t.isNewTab || !t.url || t.url.startsWith("file://") || t.url === "about:blank") ? "home" : t.url);
+  const active = Math.max(0, visible.findIndex((t) => t.id === activeId));
+  store.set("session", { tabs: open, active });
+}
+function restoreSession() {
+  const s = store.get("session", null);
+  if (!s || !Array.isArray(s.tabs) || s.tabs.length === 0) { createTab(); return; }
+  s.tabs.forEach((u) => createTab(u === "home" ? null : u));
+  const idx = Math.min(Math.max(0, s.active | 0), tabs.length - 1);
+  if (tabs[idx]) switchTab(tabs[idx].id);
+}
+
 // ---------- Baslat ----------
 applyLanguage();
-createTab();
+restoreSession();

@@ -46,9 +46,22 @@ button { font-family: inherit; cursor: pointer; }
   color: var(--muted);
   white-space: nowrap;
   overflow: hidden;
+  transform-origin: left center;
+  transition: background .12s ease, transform .08s ease;
 }
 .tab.active { background: var(--bar2); color: var(--ink); }
 .tab.private { border-top: 2px solid #a06bff; }
+.tab:active { transform: scale(.95); }
+.tab.opening { animation: tabOpen .22s cubic-bezier(.18,.89,.32,1.1); }
+.tab.closing { animation: tabClose .15s ease forwards; pointer-events: none; }
+@keyframes tabOpen {
+  from { opacity: 0; transform: scaleX(.55) translateY(-6px); }
+  to   { opacity: 1; transform: none; }
+}
+@keyframes tabClose {
+  to { opacity: 0; transform: scaleX(.2); min-width: 0; max-width: 0;
+       padding-left: 0; padding-right: 0; margin-left: 0; gap: 0; }
+}
 .tab .favicon { width: 15px; height: 15px; flex: none; border-radius: 3px; background: #d4d7dd center/contain no-repeat; }
 .tab .title { flex: 1; overflow: hidden; text-overflow: ellipsis; }
 .tab .close { width: 18px; height: 18px; border-radius: 50%; border: none; background: transparent; color: var(--muted); font-size: 13px; line-height: 1; }
