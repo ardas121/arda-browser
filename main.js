@@ -82,7 +82,9 @@ function attachSession(ses) {
   ses.setUserAgent(CHROME_UA);
   // Google OAuth, Electron/Chromium webview kimligini bazi hesaplarda reddediyor.
   // Yalnizca Google giris isteginde Firefox uyumluluk kimligi kullan.
-  ses.webRequest.onBeforeSendHeaders({ urls: ["https://accounts.google.com/*"] }, (details, cb) => {
+  ses.webRequest.onBeforeSendHeaders({
+    urls: ["https://accounts.google.com/*", "https://accounts.youtube.com/*"]
+  }, (details, cb) => {
     const requestHeaders = { ...details.requestHeaders };
     for (const name of Object.keys(requestHeaders)) {
       if (name.toLowerCase().startsWith("sec-ch-ua")) delete requestHeaders[name];
@@ -139,12 +141,6 @@ app.whenReady().then(() => {
     if (contents.getType() === "webview") {
       // Ilk ag isteginden itibaren guncel Chrome kimligi kullanilsin.
       contents.setUserAgent(CHROME_UA);
-      const updateLoginUserAgent = (_event, url) => {
-        contents.setUserAgent(isGoogleAuthUrl(url) ? GOOGLE_AUTH_UA : CHROME_UA);
-      };
-      contents.on("did-start-navigation", updateLoginUserAgent);
-      contents.on("will-navigate", updateLoginUserAgent);
-      contents.on("will-redirect", updateLoginUserAgent);
       contents.setWindowOpenHandler(({ url }) => {
         if (mainWindow && !mainWindow.isDestroyed())
           mainWindow.webContents.send("open-new-tab", url);

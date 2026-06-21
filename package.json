@@ -1,6 +1,6 @@
 {
   "name": "arda-browser",
-  "version": "1.0.4",
+  "version": "1.0.5",
   "description": "Arda Browser - Brave benzeri, reklam/izleyici engelleyici tarayici",
   "main": "main.js",
   "scripts": {
@@ -26,7 +26,14 @@
       "preload.js",
       "renderer/**/*",
       "icon.ico",
+      "README.txt",
       "package.json"
+    ],
+    "extraFiles": [
+      {
+        "from": "README.txt",
+        "to": "README.txt"
+      }
     ],
     "win": {
       "icon": "icon.ico",
