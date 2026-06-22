@@ -6,3 +6,9 @@ android/local.properties
 android/**/build/
 *.log
 .DS_Store
+
+# Imza anahtarlari - ASLA depoya yuklenmemeli (uygulama kimligin)
+*.jks
+*.keystore
+keystore.properties
+android/key.properties

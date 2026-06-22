@@ -17,7 +17,13 @@ android {
 
     buildTypes {
         release {
-            isMinifyEnabled = false
+            // Kod gizleme (obfuscation) + kucultme: dagitilan APK'nin ici
+            // okunamaz/degistirilemez hale gelir.
+            isMinifyEnabled = true
+            proguardFiles(
+                getDefaultProguardFile("proguard-android-optimize.txt"),
+                "proguard-rules.pro"
+            )
         }
     }
     compileOptions {
