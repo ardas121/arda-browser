@@ -18,11 +18,12 @@ android {
     compileSdk = 35
 
     defaultConfig {
-        applicationId = "com.arda.browser"
+        // Eski debug imzali paketlerle Android kurulum cakismasini tamamen onler.
+        applicationId = "com.ardabrowser.mobile"
         minSdk = 26
         targetSdk = 35
-        versionCode = 7
-        versionName = "1.0.12"
+        versionCode = 8
+        versionName = "1.0.13"
     }
 
     signingConfigs {

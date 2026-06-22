@@ -21,7 +21,7 @@
             android:value="true" />
 
         <activity
-            android:name=".MainActivity"
+            android:name="com.arda.browser.MainActivity"
             android:exported="true"
             android:launchMode="singleTop"
             android:configChanges="orientation|screenSize|keyboardHidden|smallestScreenSize|screenLayout">
