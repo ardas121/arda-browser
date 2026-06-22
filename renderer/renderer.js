@@ -316,14 +316,17 @@ function updateChrome() {
   if (!t) return;
   const url = t.url && !t.url.startsWith("file://") ? t.url : "";
   if (document.activeElement !== addr) addr.value = url;
-  $("#lock").textContent = url.startsWith("https://") ? "🔒" : (url ? "⚠" : "🔎");
-  $("#reload").textContent = t.loading ? "✕" : "⟳";
+  $("#lock").querySelector(".security-lock")?.classList.toggle("hidden", !url.startsWith("https://"));
+  $("#lock").querySelector(".security-warning")?.classList.toggle("hidden", !url || url.startsWith("https://"));
+  $("#lock").querySelector(".security-search")?.classList.toggle("hidden", !!url);
+  $("#reload").querySelector(".icon-reload")?.classList.toggle("hidden", t.loading);
+  $("#reload").querySelector(".icon-stop")?.classList.toggle("hidden", !t.loading);
   try {
     $("#back").disabled = !t.wv.canGoBack();
     $("#forward").disabled = !t.wv.canGoForward();
   } catch {}
   const isBm = bookmarks.some((b) => b.url === url);
-  $("#star").textContent = isBm ? "★" : "☆";
+  $("#star").classList.toggle("bookmarked", isBm);
   renderBookmarksBar();
 }
 
@@ -401,17 +404,53 @@ function renderBookmarksBar() {
 
 // ---------- Menu ----------
 const menu = $("#menupanel");
-$("#menu").onclick = (e) => { e.stopPropagation(); menu.classList.toggle("hidden"); };
+$("#menu").onclick = (e) => { e.stopPropagation(); menu.classList.toggle("hidden"); if (!menu.classList.contains("hidden")) refreshZoomLabel(); };
 document.addEventListener("click", () => menu.classList.add("hidden"));
-menu.addEventListener("click", (e) => {
-  const act = e.target.closest(".menuitem")?.dataset.act;
+menu.addEventListener("click", async (e) => {
+  e.stopPropagation();
+  const act = e.target.closest("[data-act]")?.dataset.act;
   if (!act) return;
-  menu.classList.add("hidden");
+  if (!act.startsWith("zoom-")) menu.classList.add("hidden");
   if (act === "newtab") createTab();
   else if (act === "private") createTab(null, { priv: true });
+  else if (act === "ai") createTab("https://duck.ai", { ai: true });
   else if (act === "find") openFind();
+  else if (act === "downloads") openPanel("downloads");
+  else if (act === "print") { try { await activeTab()?.wv.print({ silent: false, printBackground: true }); } catch {} }
+  else if (act === "save-page") {
+    const tab = activeTab();
+    if (tab) await window.arda.savePage(tab.wv.getWebContentsId(), tab.title || "Arda Browser").catch(() => false);
+  }
+  else if (act === "fullscreen") await window.arda.toggleFullscreen();
+  else if (act === "clear-data") await clearBrowsingData();
+  else if (act === "zoom-out") await changeZoom(-0.1);
+  else if (act === "zoom-in") await changeZoom(0.1);
+  else if (act === "help") createTab("https://github.com/ardas121/arda-browser#readme");
+  else if (act === "quit") await window.arda.quitBrowser();
   else openPanel(act);
 });
+
+async function currentZoom() {
+  try { return Number(await activeTab()?.wv.getZoomFactor()) || 1; } catch { return 1; }
+}
+async function refreshZoomLabel() {
+  const label = $("#zoomLevel");
+  if (label) label.textContent = `${Math.round((await currentZoom()) * 100)}%`;
+}
+async function changeZoom(delta) {
+  const tab = activeTab();
+  if (!tab) return;
+  const zoom = Math.min(3, Math.max(0.25, Math.round(((await currentZoom()) + delta) * 10) / 10));
+  try { await tab.wv.setZoomFactor(zoom); } catch {}
+  refreshZoomLabel();
+}
+async function clearBrowsingData() {
+  if (!confirm("Çerezler, önbellek ve tarama geçmişi silinsin mi? Yer imleri korunacaktır.")) return;
+  await window.arda.clearBrowsingData();
+  history = [];
+  store.set("history", history);
+  alert("Tarama verileri temizlendi.");
+}
 
 // ---------- Yan panel ----------
 const overlay = $("#overlay");
@@ -616,6 +655,14 @@ function runBrowserShortcut(command) {
   else if (command === "focus-address") { addr.focus(); addr.select(); }
   else if (command === "reload") activeTab()?.wv.reload();
   else if (command === "find") openFind();
+  else if (command === "downloads") openPanel("downloads");
+  else if (command === "print") { try { activeTab()?.wv.print({ silent: false, printBackground: true }); } catch {} }
+  else if (command === "save-page") {
+    const tab = activeTab();
+    if (tab) window.arda.savePage(tab.wv.getWebContentsId(), tab.title || "Arda Browser");
+  }
+  else if (command === "clear-data") clearBrowsingData();
+  else if (command === "fullscreen") window.arda.toggleFullscreen();
 }
 window.arda.onBrowserShortcut(runBrowserShortcut);
 document.addEventListener("keydown", (e) => {
@@ -627,7 +674,12 @@ document.addEventListener("keydown", (e) => {
   else if (ctrl && e.key.toLowerCase() === "l") command = "focus-address";
   else if (ctrl && e.key.toLowerCase() === "r") command = "reload";
   else if (ctrl && e.key.toLowerCase() === "f") command = "find";
+  else if (ctrl && e.key.toLowerCase() === "j") command = "downloads";
+  else if (ctrl && e.key.toLowerCase() === "p") command = "print";
+  else if (ctrl && e.key.toLowerCase() === "s") command = "save-page";
+  else if (ctrl && e.shiftKey && (e.key === "Delete" || e.key === "Backspace")) command = "clear-data";
   else if (e.key === "F5") command = "reload";
+  else if (e.key === "F11") command = "fullscreen";
   if (command) { e.preventDefault(); runBrowserShortcut(command); }
 });
 

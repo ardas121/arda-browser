@@ -9,21 +9,21 @@
   <!-- Sekme seridi -->
   <div id="tabbar">
     <div id="tabs"></div>
-    <button id="newtab" class="tabbtn" title="Yeni sekme (Ctrl+T)" data-i18n-title="newTab">+</button>
+    <button id="newtab" class="tabbtn iconbtn" title="Yeni sekme (Ctrl+T)" data-i18n-title="newTab" aria-label="Yeni sekme"><svg viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg></button>
   </div>
 
   <!-- Arac cubugu -->
   <div id="toolbar">
-    <button id="back" class="navbtn" title="Geri" data-i18n-title="back">‹</button>
-    <button id="forward" class="navbtn" title="İleri" data-i18n-title="forward">›</button>
-    <button id="reload" class="navbtn" title="Yenile (Ctrl+R)" data-i18n-title="reload">⟳</button>
-    <button id="home" class="navbtn" title="Ana sayfa" data-i18n-title="home">⌂</button>
+    <button id="back" class="navbtn iconbtn" title="Geri" data-i18n-title="back" aria-label="Geri"><svg viewBox="0 0 24 24"><path d="m15 5-7 7 7 7"/></svg></button>
+    <button id="forward" class="navbtn iconbtn" title="İleri" data-i18n-title="forward" aria-label="İleri"><svg viewBox="0 0 24 24"><path d="m9 5 7 7-7 7"/></svg></button>
+    <button id="reload" class="navbtn iconbtn" title="Yenile (Ctrl+R)" data-i18n-title="reload" aria-label="Yenile"><svg class="icon-reload" viewBox="0 0 24 24"><path d="M20 6v5h-5"/><path d="M19 11a7.5 7.5 0 1 0 .2 4"/></svg><svg class="icon-stop hidden" viewBox="0 0 24 24"><rect x="7" y="7" width="10" height="10" rx="1"/></svg></button>
+    <button id="home" class="navbtn iconbtn" title="Ana sayfa" data-i18n-title="home" aria-label="Ana sayfa"><svg viewBox="0 0 24 24"><path d="m4 11 8-7 8 7"/><path d="M6 10v10h12V10M10 20v-6h4v6"/></svg></button>
     <div id="addrwrap">
-      <span id="lock">🔒</span>
+      <span id="lock"><svg class="security-lock hidden" viewBox="0 0 24 24"><rect x="6" y="10" width="12" height="10" rx="2"/><path d="M9 10V7a3 3 0 0 1 6 0v3"/></svg><svg class="security-warning hidden" viewBox="0 0 24 24"><path d="M12 3 2.8 20h18.4L12 3Z"/><path d="M12 9v5M12 17.2h.01"/></svg><svg class="security-search" viewBox="0 0 24 24"><circle cx="10.5" cy="10.5" r="5.5"/><path d="m15 15 5 5"/></svg></span>
       <input id="address" type="text" spellcheck="false" placeholder="Ara veya adres gir" data-i18n-placeholder="addressPlaceholder" />
       <div id="addressSuggestions" class="address-suggestions hidden" role="listbox"></div>
     </div>
-    <button id="ardaai" class="navbtn ai-btn" title="Arda AI — Duck.ai altyapısı">✨ <span>Arda AI</span></button>
+    <button id="ardaai" class="navbtn ai-btn" title="Arda AI — Duck.ai altyapısı"><svg viewBox="0 0 24 24"><path d="m12 3 1.4 4.1L17.5 9l-4.1 1.4L12 14.5l-1.4-4.1L6.5 9l4.1-1.9L12 3Z"/><path d="m18.5 14 .8 2.2 2.2.8-2.2.8-.8 2.2-.8-2.2-2.2-.8 2.2-.8.8-2.2Z"/></svg><span>Arda AI</span></button>
     <select id="languageSelect" class="language-select" title="Dil" aria-label="Language">
       <option value="tr">🌐 Türkçe</option>
       <option value="en">🌐 English</option>
@@ -39,10 +39,10 @@
       <option value="hi">🌐 हिन्दी</option>
     </select>
     <button id="shields" class="navbtn shields" title="Reklam engelleyici (Shields)" data-i18n-title="shieldsTitle">
-      🛡 <span id="shieldcount">0</span>
+      <svg viewBox="0 0 24 24"><path d="M12 3 5 6v5c0 4.5 2.8 8.1 7 10 4.2-1.9 7-5.5 7-10V6l-7-3Z"/><path d="m9 12 2 2 4-5"/></svg><span id="shieldcount">0</span>
     </button>
-    <button id="star" class="navbtn" title="Yer imine ekle" data-i18n-title="addBookmark">☆</button>
-    <button id="menu" class="navbtn" title="Menü" data-i18n-title="menu">☰</button>
+    <button id="star" class="navbtn iconbtn" title="Yer imine ekle" data-i18n-title="addBookmark" aria-label="Yer imi"><svg viewBox="0 0 24 24"><path d="m12 3 2.8 5.7 6.2.9-4.5 4.4 1.1 6.2-5.6-3-5.6 3 1.1-6.2L3 9.6l6.2-.9L12 3Z"/></svg></button>
+    <button id="menu" class="navbtn iconbtn" title="Menü" data-i18n-title="menu" aria-label="Menü"><svg viewBox="0 0 24 24"><path d="M4 6h16M4 12h16M4 18h16"/></svg></button>
   </div>
 
   <!-- Yer imleri cubugu -->
@@ -52,9 +52,9 @@
   <div id="findbar" class="hidden">
     <input id="findinput" type="text" placeholder="Sayfada bul" data-i18n-placeholder="findPage" />
     <span id="findcount">0/0</span>
-    <button id="findprev" class="navbtn">↑</button>
-    <button id="findnext" class="navbtn">↓</button>
-    <button id="findclose" class="navbtn">✕</button>
+    <button id="findprev" class="navbtn iconbtn" aria-label="Önceki"><svg viewBox="0 0 24 24"><path d="m6 15 6-6 6 6"/></svg></button>
+    <button id="findnext" class="navbtn iconbtn" aria-label="Sonraki"><svg viewBox="0 0 24 24"><path d="m6 9 6 6 6-6"/></svg></button>
+    <button id="findclose" class="navbtn iconbtn" aria-label="Kapat"><svg viewBox="0 0 24 24"><path d="M6 6l12 12M18 6 6 18"/></svg></button>
   </div>
 
   <!-- Webview'lerin durdugu alan -->
@@ -62,21 +62,31 @@
 
   <!-- Menu -->
   <div id="menupanel" class="panel hidden">
-    <div class="menuitem" data-act="newtab">＋ <span data-i18n="newTab">Yeni sekme</span></div>
-    <div class="menuitem" data-act="private">🕶 <span data-i18n="privateTab">Yeni gizli sekme</span></div>
+    <div class="menuitem" data-act="newtab"><span class="menu-icon">＋</span><span data-i18n="newTab">Yeni sekme</span><kbd>Ctrl+T</kbd></div>
+    <div class="menuitem" data-act="private"><span class="menu-icon">▣</span><span data-i18n="privateTab">Yeni gizli sekme</span><kbd>Ctrl+Shift+N</kbd></div>
+    <div class="menuitem" data-act="ai"><span class="menu-icon accent-icon">✦</span><span>Arda AI</span></div>
     <div class="sep"></div>
-    <div class="menuitem" data-act="bookmarks">★ <span data-i18n="bookmarks">Yer imleri</span></div>
-    <div class="menuitem" data-act="history">🕘 <span data-i18n="history">Geçmiş</span></div>
-    <div class="menuitem" data-act="downloads">⬇ <span data-i18n="downloads">İndirilenler</span></div>
-    <div class="menuitem" data-act="find">🔍 <span data-i18n="findPage">Sayfada bul</span></div>
+    <div class="menuitem" data-act="bookmarks"><span class="menu-icon">☆</span><span data-i18n="bookmarks">Yer imleri</span></div>
+    <div class="menuitem" data-act="history"><span class="menu-icon">↶</span><span data-i18n="history">Geçmiş</span></div>
+    <div class="menuitem" data-act="downloads"><span class="menu-icon">⇩</span><span data-i18n="downloads">İndirilenler</span><kbd>Ctrl+J</kbd></div>
+    <div class="menuitem" data-act="clear-data"><span class="menu-icon">⌫</span><span>Tarama verilerini sil</span><kbd>Ctrl+Shift+Del</kbd></div>
     <div class="sep"></div>
-    <div class="menuitem" data-act="settings">⚙ <span data-i18n="settings">Ayarlar</span></div>
+    <div class="menu-zoom"><span class="menu-icon">⌕</span><span>Yakınlaştır</span><button data-act="zoom-out">−</button><strong id="zoomLevel">100%</strong><button data-act="zoom-in">＋</button></div>
+    <div class="sep"></div>
+    <div class="menuitem" data-act="print"><span class="menu-icon">▤</span><span>Yazdır</span><kbd>Ctrl+P</kbd></div>
+    <div class="menuitem" data-act="save-page"><span class="menu-icon">⇩</span><span>Sayfayı kaydet</span><kbd>Ctrl+S</kbd></div>
+    <div class="menuitem" data-act="find"><span class="menu-icon">⌕</span><span data-i18n="findPage">Sayfada bul</span><kbd>Ctrl+F</kbd></div>
+    <div class="menuitem" data-act="fullscreen"><span class="menu-icon">⛶</span><span>Tam ekran</span><kbd>F11</kbd></div>
+    <div class="sep"></div>
+    <div class="menuitem" data-act="help"><span class="menu-icon">?</span><span>Yardım</span></div>
+    <div class="menuitem" data-act="settings"><span class="menu-icon">⚙</span><span data-i18n="settings">Ayarlar</span></div>
+    <div class="menuitem danger-item" data-act="quit"><span class="menu-icon">×</span><span>Çıkış</span></div>
   </div>
 
   <!-- Yan panel (gecmis / indirilenler / yer imleri / ayarlar) -->
   <div id="overlay" class="hidden"></div>
   <div id="sidepanel" class="hidden">
-    <div id="panelhead"><span id="paneltitle"></span><button id="panelclose" class="navbtn">✕</button></div>
+    <div id="panelhead"><span id="paneltitle"></span><button id="panelclose" class="navbtn iconbtn" aria-label="Kapat"><svg viewBox="0 0 24 24"><path d="M6 6l12 12M18 6 6 18"/></svg></button></div>
     <div id="panelbody"></div>
   </div>
 

@@ -22,6 +22,14 @@ body {
   user-select: none;
 }
 button { font-family: inherit; cursor: pointer; }
+button:focus-visible, select:focus-visible { outline: 2px solid rgba(251,84,43,.65); outline-offset: 2px; }
+.iconbtn svg, .navbtn svg, .tabbtn svg, #lock svg {
+  width: 19px; height: 19px; fill: none; stroke: currentColor; stroke-width: 1.8;
+  stroke-linecap: round; stroke-linejoin: round; pointer-events: none;
+}
+#lock { display: inline-flex; align-items: center; }
+#lock svg { width: 14px; height: 14px; }
+#star.bookmarked svg { fill: currentColor; }
 
 /* Sekmeler */
 #tabbar {
@@ -67,8 +75,8 @@ button { font-family: inherit; cursor: pointer; }
 .tab .close { width: 18px; height: 18px; border-radius: 50%; border: none; background: transparent; color: var(--muted); font-size: 13px; line-height: 1; }
 .tab .close:hover { background: #d9dce1; color: var(--ink); }
 .tabbtn {
-  width: 30px; height: 30px; border: none; border-radius: 7px;
-  background: transparent; color: var(--muted); font-size: 19px;
+  width: 32px; height: 32px; border: none; border-radius: 9px;
+  background: transparent; color: #5f6368; display: grid; place-items: center;
 }
 .tabbtn:hover { background: var(--bar); color: var(--ink); }
 .tabbtn, .navbtn { transition: transform .12s ease, background .12s ease, box-shadow .12s ease; }
@@ -80,18 +88,19 @@ button { font-family: inherit; cursor: pointer; }
 
 /* Arac cubugu */
 #toolbar {
-  display: flex; align-items: center; gap: 4px;
+  display: flex; align-items: center; gap: 3px;
   background: var(--bar2);
-  padding: 7px 9px;
+  padding: 5px 10px;
   border-bottom: 1px solid var(--line);
 }
 .navbtn {
-  height: 34px; min-width: 34px; padding: 0 9px;
-  border: none; border-radius: 8px;
-  background: transparent; color: var(--ink);
-  font-size: 16px; display: inline-flex; align-items: center; justify-content: center; gap: 5px;
+  height: 34px; min-width: 34px; padding: 0 8px;
+  border: none; border-radius: 9px;
+  background: transparent; color: #5f6368;
+  font-size: 15px; display: inline-flex; align-items: center; justify-content: center; gap: 5px;
 }
-.navbtn:hover { background: #eceef1; }
+.navbtn:hover { background: #eef0f3; color: #202124; }
+.navbtn:active { background: #e2e5e9; }
 .navbtn:disabled { opacity: .35; cursor: default; }
 .shields { color: var(--accent2); font-size: 13px; font-weight: 600; }
 .ai-btn { color: var(--accent); font-size: 12px; font-weight: 700; white-space: nowrap; }
@@ -100,9 +109,9 @@ button { font-family: inherit; cursor: pointer; }
   position: relative;
   flex: 1; display: flex; align-items: center; gap: 7px;
   background: var(--bar); border: 1px solid var(--line);
-  border-radius: 18px; padding: 0 14px; height: 36px; margin: 0 6px;
+  border-radius: 12px; padding: 0 13px; height: 36px; margin: 0 7px;
 }
-#addrwrap:focus-within { border-color: var(--accent); }
+#addrwrap:focus-within { border-color: #cfd3d8; box-shadow: 0 0 0 2px rgba(251,84,43,.12); }
 #lock { font-size: 11px; color: var(--muted); }
 #address {
   flex: 1; border: none; outline: none; background: transparent;
@@ -186,9 +195,19 @@ html[dir="rtl"] .address-suggestions { text-align: right; }
   background: var(--bar2); border: 1px solid var(--line);
   border-radius: 10px; padding: 6px; box-shadow: 0 12px 30px rgba(0,0,0,.5);
 }
-#menupanel { top: 92px; right: 10px; width: 210px; }
-.menuitem { padding: 9px 12px; border-radius: 7px; font-size: 13px; }
+#menupanel { top: 92px; right: 10px; width: 330px; max-height: calc(100vh - 105px); overflow-y: auto; }
+.menuitem { display: grid; grid-template-columns: 25px minmax(0,1fr) auto; align-items: center; gap: 8px; padding: 9px 11px; border-radius: 7px; font-size: 13px; }
 .menuitem:hover { background: var(--accent); color: #fff; }
+.menu-icon { width: 23px; text-align: center; color: var(--muted); font-size: 16px; }
+.accent-icon { color: var(--accent); }
+.menuitem:hover .menu-icon { color: inherit; }
+.menuitem kbd { color: var(--muted); font: 11px "Segoe UI", sans-serif; white-space: nowrap; }
+.menuitem:hover kbd { color: rgba(255,255,255,.85); }
+.danger-item:hover { background: #d83b3b; }
+.menu-zoom { display: grid; grid-template-columns: 25px minmax(0,1fr) 30px 48px 30px; align-items: center; gap: 6px; padding: 7px 11px; font-size: 13px; }
+.menu-zoom button { width: 30px; height: 28px; border: none; border-radius: 7px; background: var(--bar); color: var(--ink); font-size: 17px; }
+.menu-zoom button:hover { background: var(--accent); color: #fff; }
+.menu-zoom strong { text-align: center; font-size: 12px; }
 .sep { height: 1px; background: var(--line); margin: 5px 4px; }
 
 /* Yan panel */

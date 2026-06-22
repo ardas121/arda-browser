@@ -1,4 +1,4 @@
-const { app, BrowserWindow, session, ipcMain, Menu, clipboard, net, shell } = require("electron");
+const { app, BrowserWindow, session, ipcMain, Menu, clipboard, net, shell, dialog, webContents } = require("electron");
 const path = require("path");
 const fs = require("fs").promises;
 const { FiltersEngine, Request } = require("@ghostery/adblocker");
@@ -262,7 +262,12 @@ function attachKeyboardShortcuts(contents) {
     else if (ctrl && key === "l") command = "focus-address";
     else if (ctrl && key === "r") command = "reload";
     else if (ctrl && key === "f") command = "find";
+    else if (ctrl && key === "j") command = "downloads";
+    else if (ctrl && key === "p") command = "print";
+    else if (ctrl && key === "s") command = "save-page";
+    else if (ctrl && input.shift && (key === "delete" || key === "backspace")) command = "clear-data";
     else if (key === "f5") command = "reload";
+    else if (key === "f11") command = "fullscreen";
     if (!command) return;
     event.preventDefault();
     if (mainWindow && !mainWindow.isDestroyed()) {
@@ -326,6 +331,35 @@ app.whenReady().then(() => {
     return shieldsEnabled;
   });
   ipcMain.handle("get-shields", () => shieldsEnabled);
+  ipcMain.handle("toggle-fullscreen", (event) => {
+    const win = BrowserWindow.fromWebContents(event.sender);
+    if (!win) return false;
+    win.setFullScreen(!win.isFullScreen());
+    return win.isFullScreen();
+  });
+  ipcMain.handle("clear-browsing-data", async () => {
+    await Promise.all([
+      session.defaultSession.clearStorageData(),
+      session.defaultSession.clearCache(),
+      session.fromPartition("incognito").clearStorageData(),
+      session.fromPartition("incognito").clearCache()
+    ]);
+    return true;
+  });
+  ipcMain.handle("save-page", async (_event, contentsId, suggestedName) => {
+    const guest = webContents.fromId(Number(contentsId));
+    if (!guest || guest.isDestroyed()) return false;
+    const safeName = String(suggestedName || "sayfa").replace(/[<>:\"/\\|?*]/g, "_").slice(0, 80);
+    const result = await dialog.showSaveDialog(mainWindow, {
+      title: "Sayfayı kaydet",
+      defaultPath: `${safeName || "sayfa"}.html`,
+      filters: [{ name: "Web sayfası", extensions: ["html"] }]
+    });
+    if (result.canceled || !result.filePath) return false;
+    await guest.savePage(result.filePath, "HTMLComplete");
+    return true;
+  });
+  ipcMain.handle("quit-browser", () => { app.quit(); return true; });
   ipcMain.handle("download-action", async (_event, id, action) => {
     const item = activeDownloads.get(String(id));
     const finished = finishedDownloads.get(String(id));
