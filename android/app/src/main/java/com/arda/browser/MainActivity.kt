@@ -1081,22 +1081,23 @@ body{background:#ffffff;color:#202124;height:100vh;display:flex;flex-direction:c
 form{width:90vw;display:flex;border-radius:26px;box-shadow:0 3px 14px rgba(0,0,0,.08)}
 input{flex:1;padding:14px 18px;font-size:16px;border:1px solid #e5e7eb;border-right:none;border-radius:26px 0 0 26px;background:#f7f8fa;color:#202124;outline:none}
 button{padding:0 20px;border:none;background:#fb542b;color:#fff;border-radius:0 26px 26px 0;font-size:16px}
-.duckai{margin-top:14px;display:inline-flex;align-items:center;gap:8px;padding:10px 18px;border-radius:22px;background:#f7f8fa;border:1px solid #e5e7eb;color:#202124;text-decoration:none;font-size:13px}
-.links{display:flex;gap:12px;margin-top:24px;flex-wrap:wrap;justify-content:center}
-a.tile{width:78px;height:70px;border-radius:14px;background:#f7f8fa;border:1px solid #e5e7eb;text-decoration:none;color:#202124;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:7px;font-size:11px}
-a.tile .e{font-size:24px}
+.links{display:flex;gap:12px;margin-top:26px;flex-wrap:wrap;justify-content:center;max-width:92vw}
+a.tile{width:76px;height:76px;border-radius:14px;background:#f7f8fa;border:1px solid #e5e7eb;text-decoration:none;color:#202124;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;font-size:11px}
+a.tile img{width:30px;height:30px;object-fit:contain;border-radius:7px}
 .foot{position:fixed;bottom:16px;color:#c2c6cc;font-size:10px}
 </style></head><body>
 <div class="brand">ARDA <span>BROWSER</span></div>
 <div class="emblem">&#129517;</div>
 <div class="sub">GIZLILIGIN KORUNDUGU TARAYICI</div>
 <form action="https://duckduckgo.com/"><input name="q" placeholder="Ara veya adres gir"><button type="submit">Ara</button></form>
-<a class="duckai" href="https://duck.ai">&#129414; Duck.ai ile sohbet et</a>
 <div class="links">
-<a class="tile" href="https://m.youtube.com"><span class="e">&#9654;</span>YouTube</a>
-<a class="tile" href="https://www.google.com"><span class="e">&#128269;</span>Google</a>
-<a class="tile" href="https://github.com"><span class="e">&#128025;</span>GitHub</a>
-<a class="tile" href="https://www.wikipedia.org"><span class="e">&#128218;</span>Wiki</a>
+<a class="tile" href="https://www.youtube.com"><img src="https://www.google.com/s2/favicons?sz=64&amp;domain=youtube.com" onerror="this.style.visibility='hidden'">YouTube</a>
+<a class="tile" href="https://www.google.com"><img src="https://www.google.com/s2/favicons?sz=64&amp;domain=google.com" onerror="this.style.visibility='hidden'">Google</a>
+<a class="tile" href="https://duck.ai"><img src="https://www.google.com/s2/favicons?sz=64&amp;domain=duck.ai" onerror="this.style.visibility='hidden'">Arda AI</a>
+<a class="tile" href="https://github.com"><img src="https://www.google.com/s2/favicons?sz=64&amp;domain=github.com" onerror="this.style.visibility='hidden'">GitHub</a>
+<a class="tile" href="https://www.wikipedia.org"><img src="https://www.google.com/s2/favicons?sz=64&amp;domain=wikipedia.org" onerror="this.style.visibility='hidden'">Wikipedia</a>
+<a class="tile" href="https://x.com"><img src="https://www.google.com/s2/favicons?sz=64&amp;domain=x.com" onerror="this.style.visibility='hidden'">X</a>
+<a class="tile" href="https://www.reddit.com"><img src="https://www.google.com/s2/favicons?sz=64&amp;domain=reddit.com" onerror="this.style.visibility='hidden'">Reddit</a>
 </div>
 <div class="foot">&#128737; Reklam ve izleyici engelleme acik</div>
 </body></html>
