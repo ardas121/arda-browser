@@ -1,8 +1,9 @@
 name: APK Derle ve Yayinla
 
 # Ne zaman calisir:
-#  - "v1.0.12" gibi bir surum etiketi (tag) gonderildiginde  -> APK derlenir + Release'e eklenir
-#  - Actions sekmesinden elle calistirildiginda (workflow_dispatch) -> APK artifact olarak uretilir
+#  - "v1.0.12" gibi bir surum etiketi (tag) gonderildiginde
+#  - Actions sekmesinden elle calistirildiginda (workflow_dispatch)
+# Her iki durumda da imzali/imzasiz release APK derlenip GitHub Releases'e eklenir.
 on:
   push:
     tags:
@@ -15,6 +16,8 @@ permissions:
 jobs:
   build:
     runs-on: ubuntu-latest
+    env:
+      VERSION: v1.0.12
     steps:
       - name: Depoyu indir
         uses: actions/checkout@v4
@@ -62,7 +65,8 @@ jobs:
           mkdir -p out
           APK=$(find android/app/build/outputs/apk/release -name "*.apk" | head -1)
           echo "Bulunan APK: $APK"
-          cp "$APK" "out/ArdaBrowser-${{ github.ref_name }}.apk"
+          VER="${{ github.ref_type == 'tag' && github.ref_name || env.VERSION }}"
+          cp "$APK" "out/ArdaBrowser-${VER}.apk"
 
       - name: APK'yi artifact olarak yukle
         uses: actions/upload-artifact@v4
@@ -70,13 +74,14 @@ jobs:
           name: ArdaBrowser-APK
           path: out/*.apk
 
-      - name: GitHub Release'e ekle (yalnizca etiket gonderilince)
-        if: startsWith(github.ref, 'refs/tags/')
+      - name: GitHub Release olustur
+        if: success()
         uses: softprops/action-gh-release@v2
         with:
-          name: Arda Browser ${{ github.ref_name }}
+          tag_name: ${{ github.ref_type == 'tag' && github.ref_name || env.VERSION }}
+          name: Arda Browser ${{ github.ref_type == 'tag' && github.ref_name || env.VERSION }}
           body: |
-            ## Arda Browser ${{ github.ref_name }} (Mobil / APK)
+            ## Arda Browser ${{ github.ref_type == 'tag' && github.ref_name || env.VERSION }} (Mobil / APK)
 
             📱 Telefonuna indirip kurabilirsin. Indirdikten sonra "Bilinmeyen
             kaynaklardan kuruluma izin ver" demen gerekebilir.
