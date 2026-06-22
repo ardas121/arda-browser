@@ -264,6 +264,12 @@ class MainActivity : AppCompatActivity() {
             mixedContentMode = WebSettings.MIXED_CONTENT_COMPATIBILITY_MODE
             cacheMode = if (priv) WebSettings.LOAD_NO_CACHE else WebSettings.LOAD_DEFAULT
             userAgentString = CHROME_UA
+            // --- Guvenlik sertlestirmesi ---
+            safeBrowsingEnabled = true                  // Google Guvenli Tarama: zararli/oltalama sitelerini engeller
+            allowFileAccess = false                     // sayfalar telefondaki dosyalara erisemesin
+            allowContentAccess = false
+            allowFileAccessFromFileURLs = false         // yerel dosyalar birbirini okuyamasin
+            allowUniversalAccessFromFileURLs = false
         }
         CookieManager.getInstance().setAcceptThirdPartyCookies(web, !priv)
 
