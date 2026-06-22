@@ -42,6 +42,7 @@ import android.webkit.WebView
 import android.webkit.WebViewClient
 import android.widget.AutoCompleteTextView
 import android.widget.ArrayAdapter
+import android.widget.Filter
 import android.widget.EditText
 import android.widget.FrameLayout
 import android.widget.LinearLayout
@@ -76,6 +77,7 @@ class MainActivity : AppCompatActivity() {
     private lateinit var container: FrameLayout
     private lateinit var address: AutoCompleteTextView
     private val addressTargets = LinkedHashMap<String, String>()
+    private val addressAdapter by lazy { SuggestAdapter() }
     private lateinit var progress: ProgressBar
     private lateinit var shieldsView: TextView
     private lateinit var tabCountView: TextView
@@ -159,6 +161,7 @@ class MainActivity : AppCompatActivity() {
                 navigate(address.text.toString()); hideKeyboard(); true
             } else false
         }
+        address.setAdapter(addressAdapter)
         address.addTextChangedListener(object : TextWatcher {
             override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) = Unit
             override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {
@@ -261,6 +264,12 @@ class MainActivity : AppCompatActivity() {
             mixedContentMode = WebSettings.MIXED_CONTENT_COMPATIBILITY_MODE
             cacheMode = if (priv) WebSettings.LOAD_NO_CACHE else WebSettings.LOAD_DEFAULT
             userAgentString = CHROME_UA
+            // --- Guvenlik sertlestirmesi ---
+            safeBrowsingEnabled = true                  // Google Guvenli Tarama: zararli/oltalama sitelerini engeller
+            allowFileAccess = false                     // sayfalar telefondaki dosyalara erisemesin
+            allowContentAccess = false
+            allowFileAccessFromFileURLs = false         // yerel dosyalar birbirini okuyamasin
+            allowUniversalAccessFromFileURLs = false
         }
         CookieManager.getInstance().setAcceptThirdPartyCookies(web, !priv)
 
@@ -695,27 +704,60 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun updateAddressSuggestions(raw: String) {
-        val query = raw.trim().lowercase()
-        if (query.isEmpty()) return
-        addressTargets.clear()
-        fun collect(key: String) {
-            val a = arr(key)
-            for (i in 0 until a.length()) {
-                val o = a.optJSONObject(i) ?: continue
-                val title = o.optString("t")
-                val url = o.optString("u")
-                if (url.isBlank() || (!title.lowercase().contains(query) && !url.lowercase().contains(query))) continue
-                val label = "🌐  ${title.ifBlank { url }}\n$url"
-                addressTargets.putIfAbsent(label, url)
-                if (addressTargets.size >= 7) return
+        try {
+            val query = raw.trim().lowercase()
+            if (query.isEmpty()) {
+                addressTargets.clear()
+                addressAdapter.setRows(emptyList())
+                try { address.dismissDropDown() } catch (e: Exception) {}
+                return
+            }
+            addressTargets.clear()
+            fun collect(key: String) {
+                val a = arr(key)
+                for (i in 0 until a.length()) {
+                    val o = a.optJSONObject(i) ?: continue
+                    val title = o.optString("t")
+                    val url = o.optString("u")
+                    if (url.isBlank() || (!title.lowercase().contains(query) && !url.lowercase().contains(query))) continue
+                    val label = "🌐  ${title.ifBlank { url }}\n$url"
+                    addressTargets.putIfAbsent(label, url)
+                    if (addressTargets.size >= 7) return
+                }
+            }
+            collect("bookmarks")
+            collect("history")
+            val searchLabel = "🔎  $raw"
+            addressTargets.putIfAbsent(searchLabel, raw)
+            addressAdapter.setRows(addressTargets.keys.toList())
+            if (address.hasFocus()) {
+                try { address.showDropDown() } catch (e: Exception) {}
+            }
+        } catch (e: Exception) {
+            // Oneri uretimi hicbir kosulda yazmayi/uygulamayi cokertmemeli
+        }
+    }
+
+    // Adres cubugu icin sabit adapter. AutoCompleteTextView'in kendi arka-plan
+    // filtresi yerine kendi onerilerimizi gosteririz; boylece her tus vurusunda
+    // yeni adapter atayip listView'i cokertme (IllegalStateException) sorunu olmaz.
+    private inner class SuggestAdapter : ArrayAdapter<String>(
+        this, android.R.layout.simple_dropdown_item_1line, mutableListOf()
+    ) {
+        private val passThrough = object : Filter() {
+            override fun performFiltering(constraint: CharSequence?): FilterResults =
+                FilterResults().apply { count = this@SuggestAdapter.count }
+            override fun publishResults(constraint: CharSequence?, results: FilterResults?) {
+                notifyDataSetChanged()
             }
         }
-        collect("bookmarks")
-        collect("history")
-        val searchLabel = "🔎  $raw"
-        addressTargets.putIfAbsent(searchLabel, raw)
-        address.setAdapter(ArrayAdapter(this, android.R.layout.simple_dropdown_item_1line, addressTargets.keys.toList()))
-        if (address.hasFocus()) address.showDropDown()
+        override fun getFilter(): Filter = passThrough
+        fun setRows(rows: List<String>) {
+            setNotifyOnChange(false)
+            clear()
+            addAll(rows)
+            notifyDataSetChanged()
+        }
     }
 
     private fun hasBookmark(url: String): Boolean {
@@ -1045,22 +1087,23 @@ body{background:#ffffff;color:#202124;height:100vh;display:flex;flex-direction:c
 form{width:90vw;display:flex;border-radius:26px;box-shadow:0 3px 14px rgba(0,0,0,.08)}
 input{flex:1;padding:14px 18px;font-size:16px;border:1px solid #e5e7eb;border-right:none;border-radius:26px 0 0 26px;background:#f7f8fa;color:#202124;outline:none}
 button{padding:0 20px;border:none;background:#fb542b;color:#fff;border-radius:0 26px 26px 0;font-size:16px}
-.duckai{margin-top:14px;display:inline-flex;align-items:center;gap:8px;padding:10px 18px;border-radius:22px;background:#f7f8fa;border:1px solid #e5e7eb;color:#202124;text-decoration:none;font-size:13px}
-.links{display:flex;gap:12px;margin-top:24px;flex-wrap:wrap;justify-content:center}
-a.tile{width:78px;height:70px;border-radius:14px;background:#f7f8fa;border:1px solid #e5e7eb;text-decoration:none;color:#202124;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:7px;font-size:11px}
-a.tile .e{font-size:24px}
+.links{display:flex;gap:12px;margin-top:26px;flex-wrap:wrap;justify-content:center;max-width:92vw}
+a.tile{width:76px;height:76px;border-radius:14px;background:#f7f8fa;border:1px solid #e5e7eb;text-decoration:none;color:#202124;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;font-size:11px}
+a.tile img{width:30px;height:30px;object-fit:contain;border-radius:7px}
 .foot{position:fixed;bottom:16px;color:#c2c6cc;font-size:10px}
 </style></head><body>
 <div class="brand">ARDA <span>BROWSER</span></div>
 <div class="emblem">&#129517;</div>
 <div class="sub">GIZLILIGIN KORUNDUGU TARAYICI</div>
 <form action="https://duckduckgo.com/"><input name="q" placeholder="Ara veya adres gir"><button type="submit">Ara</button></form>
-<a class="duckai" href="https://duck.ai">&#129414; Duck.ai ile sohbet et</a>
 <div class="links">
-<a class="tile" href="https://m.youtube.com"><span class="e">&#9654;</span>YouTube</a>
-<a class="tile" href="https://www.google.com"><span class="e">&#128269;</span>Google</a>
-<a class="tile" href="https://github.com"><span class="e">&#128025;</span>GitHub</a>
-<a class="tile" href="https://www.wikipedia.org"><span class="e">&#128218;</span>Wiki</a>
+<a class="tile" href="https://www.youtube.com"><img src="https://www.google.com/s2/favicons?sz=64&amp;domain=youtube.com" onerror="this.style.visibility='hidden'">YouTube</a>
+<a class="tile" href="https://www.google.com"><img src="https://www.google.com/s2/favicons?sz=64&amp;domain=google.com" onerror="this.style.visibility='hidden'">Google</a>
+<a class="tile" href="https://duck.ai"><img src="https://www.google.com/s2/favicons?sz=64&amp;domain=duck.ai" onerror="this.style.visibility='hidden'">Arda AI</a>
+<a class="tile" href="https://github.com"><img src="https://www.google.com/s2/favicons?sz=64&amp;domain=github.com" onerror="this.style.visibility='hidden'">GitHub</a>
+<a class="tile" href="https://www.wikipedia.org"><img src="https://www.google.com/s2/favicons?sz=64&amp;domain=wikipedia.org" onerror="this.style.visibility='hidden'">Wikipedia</a>
+<a class="tile" href="https://x.com"><img src="https://www.google.com/s2/favicons?sz=64&amp;domain=x.com" onerror="this.style.visibility='hidden'">X</a>
+<a class="tile" href="https://www.reddit.com"><img src="https://www.google.com/s2/favicons?sz=64&amp;domain=reddit.com" onerror="this.style.visibility='hidden'">Reddit</a>
 </div>
 <div class="foot">&#128737; Reklam ve izleyici engelleme acik</div>
 </body></html>
