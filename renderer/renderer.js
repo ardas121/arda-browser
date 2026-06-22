@@ -609,15 +609,26 @@ $("#findprev").onclick = () => doFind(false);
 $("#findclose").onclick = closeFind;
 
 // ---------- Kisayollar ----------
+function runBrowserShortcut(command) {
+  if (command === "new-tab") createTab();
+  else if (command === "close-tab") closeTab(activeId);
+  else if (command === "private-tab") createTab(null, { priv: true });
+  else if (command === "focus-address") { addr.focus(); addr.select(); }
+  else if (command === "reload") activeTab()?.wv.reload();
+  else if (command === "find") openFind();
+}
+window.arda.onBrowserShortcut(runBrowserShortcut);
 document.addEventListener("keydown", (e) => {
   const ctrl = e.ctrlKey || e.metaKey;
-  if (ctrl && e.key === "t") { e.preventDefault(); createTab(); }
-  else if (ctrl && e.key === "w") { e.preventDefault(); closeTab(activeId); }
-  else if (ctrl && e.shiftKey && (e.key === "n" || e.key === "N")) { e.preventDefault(); createTab(null, { priv: true }); }
-  else if (ctrl && e.key === "l") { e.preventDefault(); addr.focus(); addr.select(); }
-  else if (ctrl && e.key === "r") { e.preventDefault(); activeTab().wv.reload(); }
-  else if (ctrl && e.key === "f") { e.preventDefault(); openFind(); }
-  else if (e.key === "F5") { e.preventDefault(); activeTab().wv.reload(); }
+  let command = null;
+  if (ctrl && e.shiftKey && e.key.toLowerCase() === "n") command = "private-tab";
+  else if (ctrl && e.key.toLowerCase() === "t") command = "new-tab";
+  else if (ctrl && e.key.toLowerCase() === "w") command = "close-tab";
+  else if (ctrl && e.key.toLowerCase() === "l") command = "focus-address";
+  else if (ctrl && e.key.toLowerCase() === "r") command = "reload";
+  else if (ctrl && e.key.toLowerCase() === "f") command = "find";
+  else if (e.key === "F5") command = "reload";
+  if (command) { e.preventDefault(); runBrowserShortcut(command); }
 });
 
 // ---------- Oturum (sekmeleri hatirla) ----------

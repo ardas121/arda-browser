@@ -248,6 +248,29 @@ function attachContextMenu(contents) {
   });
 }
 
+function attachKeyboardShortcuts(contents) {
+  if (contents.__ardaKeyboardShortcuts) return;
+  contents.__ardaKeyboardShortcuts = true;
+  contents.on("before-input-event", (event, input) => {
+    if (input.type !== "keyDown") return;
+    const key = String(input.key || "").toLowerCase();
+    const ctrl = input.control || input.meta;
+    let command = null;
+    if (ctrl && input.shift && key === "n") command = "private-tab";
+    else if (ctrl && key === "t") command = "new-tab";
+    else if (ctrl && key === "w") command = "close-tab";
+    else if (ctrl && key === "l") command = "focus-address";
+    else if (ctrl && key === "r") command = "reload";
+    else if (ctrl && key === "f") command = "find";
+    else if (key === "f5") command = "reload";
+    if (!command) return;
+    event.preventDefault();
+    if (mainWindow && !mainWindow.isDestroyed()) {
+      mainWindow.webContents.send("browser-shortcut", command);
+    }
+  });
+}
+
 function createWindow() {
   mainWindow = new BrowserWindow({
     width: 1280,
@@ -267,6 +290,7 @@ function createWindow() {
   });
   mainWindow.loadFile(path.join(__dirname, "renderer", "index.html"));
   attachContextMenu(mainWindow.webContents);
+  attachKeyboardShortcuts(mainWindow.webContents);
 }
 
 app.whenReady().then(() => {
@@ -280,6 +304,7 @@ app.whenReady().then(() => {
       // Ilk ag isteginden itibaren guncel Chrome kimligi kullanilsin.
       contents.setUserAgent(CHROME_UA);
       attachContextMenu(contents);
+      attachKeyboardShortcuts(contents);
       contents.on("did-finish-load", () => {
         if (shieldsEnabled) contents.insertCSS(COSMETIC_AD_CSS).catch(() => {});
       });

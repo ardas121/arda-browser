@@ -6,6 +6,7 @@ contextBridge.exposeInMainWorld("arda", {
   getSearchSuggestions: (query) => ipcRenderer.invoke("get-search-suggestions", query),
   onBlockedCount: (cb) => ipcRenderer.on("blocked-count", (e, n) => cb(n)),
   onOpenTab: (cb) => ipcRenderer.on("open-new-tab", (e, url) => cb(url)),
+  onBrowserShortcut: (cb) => ipcRenderer.on("browser-shortcut", (e, command) => cb(command)),
   onDownloadStarted: (cb) => ipcRenderer.on("download-started", (e, d) => cb(d)),
   onDownloadProgress: (cb) => ipcRenderer.on("download-progress", (e, d) => cb(d)),
   onDownloadDone: (cb) => ipcRenderer.on("download-done", (e, d) => cb(d)),
