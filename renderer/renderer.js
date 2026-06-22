@@ -25,6 +25,7 @@ let downloads = [];
 let openPanelKind = null;
 
 const $ = (s) => document.querySelector(s);
+const downloadBubble = $("#downloadBubble");
 const views = $("#views");
 const tabsEl = $("#tabs");
 const addr = $("#address");
@@ -544,6 +545,23 @@ function downloadItem(d) {
   if (d.state === "completed") { addAction(tx.open, "open"); addAction(tx.folder, "folder"); }
   return card;
 }
+function renderDownloadBubble() {
+  const body = $("#downloadBubbleBody");
+  if (!body) return;
+  body.innerHTML = "";
+  const active = downloads.filter((d) => d.state === "progress" || d.state === "interrupted").length;
+  $("#downloadBubbleSummary").textContent = active ? `${active} indirme devam ediyor` : (downloads.length ? "Son indirmeler" : "Henüz indirme yok");
+  const badge = $("#downloadBadge");
+  badge.textContent = active;
+  badge.classList.toggle("hidden", active === 0);
+  downloads.slice(0, 4).forEach((d) => body.appendChild(downloadItem(d)));
+  if (!downloads.length) body.innerHTML = `<div class="empty">${t("downloadsEmpty")}</div>`;
+}
+function showDownloadBubble() { renderDownloadBubble(); downloadBubble.classList.remove("hidden"); }
+$("#downloadsBtn").onclick = (e) => { e.stopPropagation(); downloadBubble.classList.contains("hidden") ? showDownloadBubble() : downloadBubble.classList.add("hidden"); };
+$("#downloadBubbleClose").onclick = () => downloadBubble.classList.add("hidden");
+$("#downloadBubbleAll").onclick = () => { downloadBubble.classList.add("hidden"); openPanel("downloads"); };
+downloadBubble.addEventListener("click", (e) => e.stopPropagation());
 function rowItem(ico, t, u, onClick, onDel) {
   const row = document.createElement("div");
   row.className = "row";
@@ -613,8 +631,9 @@ function updateDownload(d) {
   const i = downloads.findIndex((x) => x.id === d.id);
   if (i >= 0) downloads[i] = { ...downloads[i], ...d }; else downloads.unshift(d);
   if (openPanelKind === "downloads") openPanel("downloads");
+  if (!downloadBubble.classList.contains("hidden")) renderDownloadBubble();
 }
-window.arda.onDownloadStarted(updateDownload);
+window.arda.onDownloadStarted((d) => { updateDownload(d); showDownloadBubble(); });
 window.arda.onDownloadProgress(updateDownload);
 window.arda.onDownloadDone((d) => {
   updateDownload(d);

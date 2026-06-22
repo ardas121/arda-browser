@@ -41,8 +41,15 @@
     <button id="shields" class="navbtn shields" title="Reklam engelleyici (Shields)" data-i18n-title="shieldsTitle">
       <svg viewBox="0 0 24 24"><path d="M12 3 5 6v5c0 4.5 2.8 8.1 7 10 4.2-1.9 7-5.5 7-10V6l-7-3Z"/><path d="m9 12 2 2 4-5"/></svg><span id="shieldcount">0</span>
     </button>
+    <button id="downloadsBtn" class="navbtn iconbtn download-toolbar-btn" title="İndirilenler (Ctrl+J)" aria-label="İndirilenler"><svg viewBox="0 0 24 24"><path d="M12 3v12M7 10l5 5 5-5M5 20h14"/></svg><span id="downloadBadge" class="download-badge hidden">0</span></button>
     <button id="star" class="navbtn iconbtn" title="Yer imine ekle" data-i18n-title="addBookmark" aria-label="Yer imi"><svg viewBox="0 0 24 24"><path d="m12 3 2.8 5.7 6.2.9-4.5 4.4 1.1 6.2-5.6-3-5.6 3 1.1-6.2L3 9.6l6.2-.9L12 3Z"/></svg></button>
     <button id="menu" class="navbtn iconbtn" title="Menü" data-i18n-title="menu" aria-label="Menü"><svg viewBox="0 0 24 24"><path d="M4 6h16M4 12h16M4 18h16"/></svg></button>
+  </div>
+
+  <div id="downloadBubble" class="download-bubble hidden">
+    <div class="download-bubble-head"><div><strong>İndirilenler</strong><span id="downloadBubbleSummary"></span></div><button id="downloadBubbleClose" class="navbtn iconbtn" aria-label="Kapat"><svg viewBox="0 0 24 24"><path d="M6 6l12 12M18 6 6 18"/></svg></button></div>
+    <div id="downloadBubbleBody" class="download-bubble-body"></div>
+    <button id="downloadBubbleAll" class="download-all-btn">Tüm indirilenleri göster</button>
   </div>
 
   <!-- Yer imleri cubugu -->
