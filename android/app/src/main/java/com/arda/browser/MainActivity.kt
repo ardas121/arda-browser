@@ -33,6 +33,7 @@ import androidx.activity.result.contract.ActivityResultContracts
 import androidx.core.content.ContextCompat
 import androidx.core.view.WindowInsetsCompat
 import androidx.core.view.WindowInsetsControllerCompat
+import androidx.swiperefreshlayout.widget.SwipeRefreshLayout
 import android.webkit.CookieManager
 import android.webkit.WebChromeClient
 import android.webkit.WebResourceRequest
@@ -75,6 +76,7 @@ class MainActivity : AppCompatActivity() {
     @Volatile private var blocked = 0
 
     private lateinit var container: FrameLayout
+    private lateinit var swipeRefresh: SwipeRefreshLayout
     private lateinit var address: AutoCompleteTextView
     private val addressTargets = LinkedHashMap<String, String>()
     private val addressAdapter by lazy { SuggestAdapter() }
@@ -135,6 +137,7 @@ class MainActivity : AppCompatActivity() {
         setContentView(R.layout.activity_main)
 
         container = findViewById(R.id.webContainer)
+        swipeRefresh = findViewById(R.id.swipeRefresh)
         address = findViewById(R.id.address)
         progress = findViewById(R.id.progress)
         shieldsView = findViewById(R.id.shields)
@@ -143,6 +146,14 @@ class MainActivity : AppCompatActivity() {
         tabList = findViewById(R.id.tabList)
         backView = findViewById(R.id.back)
         forwardView = findViewById(R.id.forward)
+
+        swipeRefresh.setColorSchemeResources(R.color.accent)
+        swipeRefresh.setProgressBackgroundColorSchemeResource(R.color.bg)
+        swipeRefresh.setOnChildScrollUpCallback { _, _ -> current?.web?.canScrollVertically(-1) == true }
+        swipeRefresh.setOnRefreshListener {
+            val web = current?.web
+            if (web != null) web.reload() else swipeRefresh.isRefreshing = false
+        }
 
         CookieManager.getInstance().setAcceptCookie(true)
 
@@ -277,7 +288,10 @@ class MainActivity : AppCompatActivity() {
             override fun shouldInterceptRequest(view: WebView?, request: WebResourceRequest?): WebResourceResponse? {
                 val req = request ?: return null
                 val u = req.url?.toString() ?: return null
-                if (shieldsOn && !req.isForMainFrame && isBlocked(u, view?.url)) {
+                // shouldInterceptRequest arka plan is parcaciginda calisir. Burada
+                // view.url okumak WebView thread ihlaliyle uygulamayi kapatir.
+                val sourceUrl = req.requestHeaders["Referer"].orEmpty()
+                if (shieldsOn && !req.isForMainFrame && isBlocked(u, sourceUrl)) {
                     blocked++
                     runOnUiThread { updateShieldsLabel() }
                     return WebResourceResponse("text/plain", "utf-8", ByteArrayInputStream(ByteArray(0)))
@@ -319,6 +333,7 @@ class MainActivity : AppCompatActivity() {
                 if (t == current) { if (!address.hasFocus()) address.setText(displayUrl(url)); updateNavButtons() }
                 if (!t.priv && url != null && url.startsWith("http")) { addHistory(view?.title ?: url, url); saveSession() }
                 refreshSwitcherIfOpen()
+                if (t == current) swipeRefresh.isRefreshing = false
             }
         }
 

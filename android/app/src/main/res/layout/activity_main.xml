@@ -113,12 +113,20 @@
             android:progressTint="@color/accent"
             android:visibility="gone" />
 
-        <FrameLayout
-            android:id="@+id/webContainer"
+        <androidx.swiperefreshlayout.widget.SwipeRefreshLayout
+            android:id="@+id/swipeRefresh"
             android:layout_width="match_parent"
             android:layout_height="0dp"
             android:layout_weight="1"
-            android:background="#FFFFFF" />
+            android:background="#FFFFFF">
+
+            <FrameLayout
+                android:id="@+id/webContainer"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:background="#FFFFFF" />
+
+        </androidx.swiperefreshlayout.widget.SwipeRefreshLayout>
     </LinearLayout>
 
     <!-- SEKME DEGISTIRICI (tam ekran, Brave tarzi) -->
