@@ -42,6 +42,7 @@ import android.webkit.WebView
 import android.webkit.WebViewClient
 import android.widget.AutoCompleteTextView
 import android.widget.ArrayAdapter
+import android.widget.Filter
 import android.widget.EditText
 import android.widget.FrameLayout
 import android.widget.LinearLayout
@@ -76,6 +77,7 @@ class MainActivity : AppCompatActivity() {
     private lateinit var container: FrameLayout
     private lateinit var address: AutoCompleteTextView
     private val addressTargets = LinkedHashMap<String, String>()
+    private val addressAdapter by lazy { SuggestAdapter() }
     private lateinit var progress: ProgressBar
     private lateinit var shieldsView: TextView
     private lateinit var tabCountView: TextView
@@ -159,6 +161,7 @@ class MainActivity : AppCompatActivity() {
                 navigate(address.text.toString()); hideKeyboard(); true
             } else false
         }
+        address.setAdapter(addressAdapter)
         address.addTextChangedListener(object : TextWatcher {
             override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) = Unit
             override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {
@@ -695,27 +698,60 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun updateAddressSuggestions(raw: String) {
-        val query = raw.trim().lowercase()
-        if (query.isEmpty()) return
-        addressTargets.clear()
-        fun collect(key: String) {
-            val a = arr(key)
-            for (i in 0 until a.length()) {
-                val o = a.optJSONObject(i) ?: continue
-                val title = o.optString("t")
-                val url = o.optString("u")
-                if (url.isBlank() || (!title.lowercase().contains(query) && !url.lowercase().contains(query))) continue
-                val label = "🌐  ${title.ifBlank { url }}\n$url"
-                addressTargets.putIfAbsent(label, url)
-                if (addressTargets.size >= 7) return
+        try {
+            val query = raw.trim().lowercase()
+            if (query.isEmpty()) {
+                addressTargets.clear()
+                addressAdapter.setRows(emptyList())
+                try { address.dismissDropDown() } catch (e: Exception) {}
+                return
+            }
+            addressTargets.clear()
+            fun collect(key: String) {
+                val a = arr(key)
+                for (i in 0 until a.length()) {
+                    val o = a.optJSONObject(i) ?: continue
+                    val title = o.optString("t")
+                    val url = o.optString("u")
+                    if (url.isBlank() || (!title.lowercase().contains(query) && !url.lowercase().contains(query))) continue
+                    val label = "🌐  ${title.ifBlank { url }}\n$url"
+                    addressTargets.putIfAbsent(label, url)
+                    if (addressTargets.size >= 7) return
+                }
+            }
+            collect("bookmarks")
+            collect("history")
+            val searchLabel = "🔎  $raw"
+            addressTargets.putIfAbsent(searchLabel, raw)
+            addressAdapter.setRows(addressTargets.keys.toList())
+            if (address.hasFocus()) {
+                try { address.showDropDown() } catch (e: Exception) {}
+            }
+        } catch (e: Exception) {
+            // Oneri uretimi hicbir kosulda yazmayi/uygulamayi cokertmemeli
+        }
+    }
+
+    // Adres cubugu icin sabit adapter. AutoCompleteTextView'in kendi arka-plan
+    // filtresi yerine kendi onerilerimizi gosteririz; boylece her tus vurusunda
+    // yeni adapter atayip listView'i cokertme (IllegalStateException) sorunu olmaz.
+    private inner class SuggestAdapter : ArrayAdapter<String>(
+        this, android.R.layout.simple_dropdown_item_1line, mutableListOf()
+    ) {
+        private val passThrough = object : Filter() {
+            override fun performFiltering(constraint: CharSequence?): FilterResults =
+                FilterResults().apply { count = this@SuggestAdapter.count }
+            override fun publishResults(constraint: CharSequence?, results: FilterResults?) {
+                notifyDataSetChanged()
             }
         }
-        collect("bookmarks")
-        collect("history")
-        val searchLabel = "🔎  $raw"
-        addressTargets.putIfAbsent(searchLabel, raw)
-        address.setAdapter(ArrayAdapter(this, android.R.layout.simple_dropdown_item_1line, addressTargets.keys.toList()))
-        if (address.hasFocus()) address.showDropDown()
+        override fun getFilter(): Filter = passThrough
+        fun setRows(rows: List<String>) {
+            setNotifyOnChange(false)
+            clear()
+            addAll(rows)
+            notifyDataSetChanged()
+        }
     }
 
     private fun hasBookmark(url: String): Boolean {
